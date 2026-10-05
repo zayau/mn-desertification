@@ -1,0 +1,24 @@
+# Raw search results with abstracts. Rebuild with scripts/openalex.py.
+sources/search/
+
+# Private notes, kept out of git
+private-notes/
+
+# The working notebook, kept local
+notebooks/lab/
+
+# Data stay local. Only data/README.md is tracked; it says where the files come from.
+data/*
+!data/README.md
+
+# Python environment, caches and build files.
+.venv/
+__pycache__/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# macOS folder files.
+.DS_Store
