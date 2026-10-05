@@ -1,0 +1,38 @@
+date	query	from_year	sort	total_hits	retrieved	new_to_pool
+2026-10-02	mongolia AND (desertification OR "land degradation")		cited	1363	40	40
+2026-10-02	mongolia AND desertification NOT "inner mongolia"		relevance	390	40	32
+2026-10-02	mongolia AND (rangeland OR grassland OR steppe OR pasture) AND (degradation OR overgrazing) NOT "inner mongolia"		cited	585	40	35
+2026-10-02	"mongolian plateau" AND (desertification OR degradation OR NDVI OR "vegetation change")		cited	354	40	31
+2026-10-02	mongolia AND ("dust storm" OR "dust storms" OR sandstorm OR "dust emission") NOT "inner mongolia"		cited	587	25	22
+2026-10-02	mongolia AND dzud		cited	181	30	29
+2026-10-02	mongolia AND (herder OR herders OR pastoralist OR pastoral) AND (migration OR livelihood OR vulnerability OR poverty) NOT "inner mongolia"		cited	525	25	20
+2026-10-02	mongolia AND (lake OR lakes OR river OR rivers OR "surface water" OR groundwater) AND (shrinkage OR shrinking OR loss OR drying OR decline) NOT "inner mongolia"		cited	645	20	18
+2026-10-02	mongolia AND ("community-based rangeland management" OR "pasture user group" OR "pasture user groups" OR "rangeland use agreement" OR "rangeland management" OR "pastoral institutions") NOT "inner mongolia"		cited	82	30	27
+2026-10-02	mongolia AND (afforestation OR "tree planting" OR "green belt" OR greenbelt OR "green wall" OR "billion trees" OR reforestation OR saxaul) NOT "inner mongolia"		relevance	223	30	29
+2026-10-02	mongolia AND ("land degradation neutrality" OR "combating desertification" OR "desertification control" OR "desertification prevention" OR "rangeland policy" OR "pasture law" OR "livestock tax" OR "grazing fee") NOT "inner mongolia"		relevance	77	30	20
+2026-10-02	mongolia AND cashmere AND (degradation OR rangeland OR sustainability OR goat)		cited	518	15	13
+2026-10-02	(mongolia OR "mongolian plateau") AND (forecast OR forecasting OR predict OR prediction OR projection OR projected OR "future") AND (vegetation OR desertification OR degradation OR NDVI OR grassland OR NPP)	2012	relevance	1888	50	35
+2026-10-02	(mongolia OR "mongolian plateau") AND (CMIP6 OR CMIP5 OR SSP OR RCP OR "climate scenarios") AND (vegetation OR desertification OR grassland OR drought OR aridity)	2012	relevance	119	30	28
+2026-10-02	(mongolia OR "mongolian plateau") AND ("machine learning" OR "deep learning" OR "random forest" OR "neural network" OR LSTM OR "convolutional") AND (vegetation OR desertification OR grassland OR biomass OR NDVI OR drought OR dzud OR pasture)	2015	relevance	423	50	43
+2026-10-02	desertification AND (prediction OR forecasting OR simulation OR projection) AND ("machine learning" OR "deep learning" OR "CA-Markov" OR "cellular automata" OR "neural network" OR "random forest" OR CMIP6)	2015	relevance	191	40	39
+2026-10-02	("vegetation forecasting" OR "earth surface forecasting" OR "vegetation greenness" OR "NDVI forecasting" OR "NDVI prediction" OR "vegetation dynamics") AND ("deep learning" OR ConvLSTM OR LSTM OR transformer OR "video prediction")	2018	cited	295	40	40
+2026-10-02	("foundation model" OR "foundation models" OR "self-supervised" OR "embedding fields") AND ("earth observation" OR "remote sensing" OR geospatial OR "satellite imagery") AND (pretrained OR "pre-trained" OR pretraining OR "pre-training" OR embeddings)	2021	cited	1667	30	30
+2026-10-02	("land degradation" OR desertification) AND ("residual trend" OR RESTREND OR "rain use efficiency" OR "rain-use efficiency") AND (dryland OR drylands OR "vegetation index" OR NDVI)		cited	98	30	29
+2026-10-02	(desertification OR "land degradation") AND ("remote sensing" OR "earth observation") AND (review OR framework OR "state of the art" OR challenges) AND (dryland OR drylands OR monitoring)	2005	cited	745	30	29
+2026-10-02	("land degradation neutrality" OR "SDG 15.3.1" OR "SDG indicator 15.3.1") AND (indicator OR monitoring OR "good practice" OR "trends.earth" OR assessment)		cited	554	25	24
+2026-10-02	mongolia AND "inner mongolia" AND (border OR "cross-border" OR transboundary OR comparison OR comparative OR contrasting OR divergent) AND (vegetation OR grassland OR desertification OR grazing OR degradation)		cited	1010	25	21
+2026-10-02	("Three-North" OR "Three North" OR "Grain for Green" OR "grazing ban" OR "grazing exclusion" OR "ecological restoration programs" OR "ecological engineering") AND (desertification OR "inner mongolia" OR dryland OR "northern China") AND (effectiveness OR evaluation OR assessment OR lessons OR reversal)	2008	cited	320	30	24
+2026-10-02	mongolia AND (mining OR "unpaved roads" OR "dirt roads" OR "road" OR "vehicle tracks") AND ("land degradation" OR vegetation OR rangeland OR steppe) NOT "inner mongolia"		cited	242	20	16
+2026-10-02	mongolia AND (warming OR "climate change" OR precipitation OR aridity OR "soil moisture") AND (trend OR trends OR observed OR "tipping point" OR "heat wave" OR heatwave) NOT "inner mongolia"	2005	cited	1291	30	15
+2026-10-02	(mongolia OR "mongolian plateau") AND (desertification OR "land degradation" OR "rangeland degradation" OR "grassland degradation" OR "vegetation change" OR greening OR browning) NOT "inner mongolia"	2023	relevance	575	60	49
+2026-10-02	mongolia AND (dzud OR pasture OR forage OR drought OR "livestock mortality") AND (forecast OR forecasting OR "early warning" OR prediction OR "anticipatory action" OR "risk map")	2005	relevance	203	30	16
+2026-10-02	("land use" OR "land cover" OR desertification OR grassland) AND (simulation OR prediction OR scenario) AND ("CA-Markov" OR PLUS OR FLUS OR "cellular automata" OR "Markov") AND (mongolia OR "mongolian plateau")	2012	relevance	39	20	20
+2026-10-03	(mongolia OR "mongolian plateau") AND (desertification OR "land degradation" OR "rangeland degradation" OR "grassland degradation" OR rangeland OR grassland OR steppe OR pasture)	2025	recent	1511	100	100
+2026-10-03	(mongolia OR "mongolian plateau") AND (forecast OR forecasting OR prediction OR projection OR "machine learning" OR "deep learning") AND (vegetation OR NDVI OR desertification OR grassland OR drought OR pasture OR biomass)	2025	recent	250	60	44
+2026-10-03	mongolia AND (rangeland OR grassland OR steppe OR pasture) AND (degradation OR overgrazing OR grazing OR "carrying capacity" OR "stocking rate" OR NDVI OR productivity) NOT "inner mongolia"	2025	relevance	202	80	66
+2026-10-03	"mongolian plateau" AND (desertification OR degradation OR NDVI OR vegetation OR greening OR browning)	2025	relevance	153	60	35
+2026-10-03	mongolia AND (desertification OR "land degradation" OR "dust storm" OR "sand and dust" OR "dust source") NOT "inner mongolia"	2025	relevance	122	40	29
+2026-10-03	(vegetation OR NDVI OR greenness OR "land surface" OR "satellite image") AND (forecast OR forecasting) AND ("deep learning" OR transformer OR ConvLSTM OR "foundation model" OR "neural network")	2025	relevance	1510	50	49
+2026-10-03	(rangeland OR grassland OR dryland OR drylands) AND (degradation OR desertification OR "vegetation condition") AND (forecast OR forecasting OR "early warning" OR predictability OR hindcast)	2024	relevance	231	40	39
+2026-10-03	mongolia AND (dzud OR "livestock mortality" OR "livestock loss" OR "winter disaster") AND (climate OR drought OR risk OR forecast OR 2024)	2024	relevance	45	30	25
+2026-10-03	"early warning" AND forage AND (gobi OR mongolia)		relevance	6	6	5
