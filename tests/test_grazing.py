@@ -6,17 +6,19 @@ from mn_desertification.grazing import clustered_test, soum_responses
 
 
 def test_soum_responses_trend_and_bump():
+    rng = np.random.default_rng(5)
     rows = []
     for asid, slope in [(101, -0.03), (102, 0.0)]:
         for gid in range(2):
             for year in range(2011, 2021):
+                # A little noise keeps each soum's scatter above zero, as in real data
                 rows.append({"asid": asid, "gid": asid * 10 + gid, "year": year,
-                             "remainder": slope * (year - 2011)})
+                             "remainder": slope * (year - 2011) + rng.normal(scale=1e-6)})
     responses = soum_responses(pd.DataFrame(rows), last_year=2020)
-    assert np.isclose(responses.loc[101, "trend"], -0.3)
-    assert np.isclose(responses.loc[102, "trend"], 0)
+    assert np.isclose(responses.loc[101, "trend"], -0.3, atol=1e-4)
+    assert np.isclose(responses.loc[102, "trend"], 0, atol=1e-4)
     # early mean (2011-2013) minus late mean (2016-2020) for a slope of -0.03 per year
-    assert np.isclose(responses.loc[101, "bump"], -0.03 * (1 - 7))
+    assert np.isclose(responses.loc[101, "bump"], -0.03 * (1 - 7), atol=1e-4)
 
 
 def test_clustered_test_keeps_the_least_squares_estimate():
