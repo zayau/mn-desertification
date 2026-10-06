@@ -74,12 +74,18 @@ All of it comes through Earth Engine, with the dataset IDs in [../sources/datase
 ### Rules set before the extraction
 
 - **Index.** NDVI is the main measure, as in step 1 and in the residual-trend method (Evans & Geerken 2004, Wessels et al. 2012). MSAVI, which corrects for bare soil between plants, is the check for sparse cover.
-- **Season.** The value for a site and year is the median of its clear observations from 1 July to 31 August, the weeks up to and around the August clipping. Two checks use August alone and the highest value from June to September.
-- **Footprint.** The value is the mean of the pixels within 100 m of the plot, the radius the release used. A check uses 50 m. The size of a NAMEM plot is not given in the sources read so far.
+- **Season.** Each pixel's value for a year is the median of its clear observations from 1 July to 31 August, the weeks up to and around the August clipping. Two checks use August alone and the highest value from June to September.
+- **Footprint.** A site's value is the mean of those pixel values within 100 m of the plot, the radius the release used. Each pixel counts by the share of it that lies inside the circle. MODIS is read on the product's own pixel grid, without resampling. A check uses 50 m. The size of a NAMEM plot is not given in the sources read so far.
 - **Clouds.** Pixels flagged as cloud, cloud shadow or snow in each product's quality band are dropped. A site-year with no clear observation in the season is missing.
+  - The MODIS product has no such flags to apply. Each of its daily values is fitted to the cloud-free observations of 16 days, by a full inversion when there are enough of them and by a lower-quality magnitude inversion otherwise.
+  - Both kinds are kept, so that cloudy weeks are not left out. A check keeps full inversions only, which the product's guide advises for scientific use.
 - **Sensors.** Landsat 8 and 9 reflectance is converted to the Landsat 7 scale with the published coefficients of Roy et al. (2016), as in the release. Landsat 5 and 7 values are used as they are. The change of sensor falls in 2013, inside the decade that matters, so two checks guard against a step:
   - the years in which two sensors overlap are compared directly;
   - the 2011–2020 trend is repeated with Landsat 7 alone, and set against MODIS, which is one product through the whole period.
+- **Replication.** The release describes its indices as June to August means, and the file name of its site table says August. The table itself does not say which it holds.
+  - MODIS values are extracted for the three windows this leaves open (June to August, July and August, August alone), as means and as medians, with and without the magnitude inversions, in a few years spread over the record.
+  - Each version is compared with the release's values by correlation and mean absolute difference.
+  - The closest version is then extracted for every year, and the step 1 greenness trend is recomputed from it.
 - **Enough data.** The number of sites with a value in each year is reported before any greenness value is analysed.
   - For 2011–2020 a site needs 8 of the 10 years, as in step 1.
   - For longer periods a site needs 80% of the years.

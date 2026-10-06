@@ -14,7 +14,7 @@ Earth Engine IDs, periods and resolutions were checked against the public Earth 
 | Sentinel-2 surface reflectance | `COPERNICUS/S2_SR_HARMONIZED` | 2017–present | 10–60 m | The catalog starts in March 2017 |
 | Sentinel-1 radar | `COPERNICUS/S1_GRD` | 2014–present | 10 m | Sees through cloud |
 | MODIS vegetation indices | `MODIS/061/MOD13Q1` | 2000–present | 250 m, 16 days | NDVI and EVI |
-| MODIS reflectance | `MODIS/061/MCD43A4` | 2000–present | 500 m, daily | Input for soil-adjusted indices and albedo-based indices |
+| MODIS reflectance | `MODIS/061/MCD43A4` | 2000–present | 500 m, daily | The product behind the release's site table. Each daily value is fitted to the cloud-free observations of 16 days and carries the date of the ninth day. Its [guide](https://www.umb.edu/spectralmass/modis-user-guide-v006-and-v0061/mcd43a4-nbar-product/) advises the full-inversion values for scientific use; a quality band marks them. Read on 6 October 2026 |
 | MODIS land surface temperature | `MODIS/061/MOD11A2` | 2000–present | 1 km, 8 days | |
 | MODIS net primary production | `MODIS/061/MOD17A3HGF` | 2001–2024 | 500 m, yearly | |
 | MODIS vegetation continuous fields | `MODIS/061/MOD44B` | 2000–2025 | 250 m, yearly | Tree, other vegetation and bare ground fractions |
