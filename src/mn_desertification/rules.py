@@ -36,3 +36,15 @@ ZONES = [
 # Sheep units per head, the National Statistics Office weights
 # (Purevjav et al. 2025, supplement Table S3).
 SHEEP_UNITS = {"sheep": 1, "goat": 0.9, "cattle": 6, "horse": 7, "camel": 5}
+
+# The satellite check. docs/design.md explains these under "Rules set before
+# the extraction".
+
+# The weeks of each year that satellite greenness is summarised over, as
+# (month, day): 1 July to 31 August, up to and around the August clipping.
+SEASON_FIRST = (7, 1)
+SEASON_LAST = (8, 31)
+
+# Greenness is averaged within this many metres of each plot, the radius the
+# release used.
+FOOTPRINT_M = 100
