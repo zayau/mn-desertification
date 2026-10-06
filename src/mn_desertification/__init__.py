@@ -11,6 +11,8 @@ The package holds the steps that the notebooks in ``notebooks/`` share:
 - ``trends``: trend tests for sites and for yearly means.
 - ``detection``: the detection test, the permutation test and the robustness checks.
 - ``grazing``: herd measures and soum-level responses.
+- ``satellite``: greenness at the sites from Google Earth Engine. It needs the
+  optional ``satellite`` dependencies and is imported only where it is used.
 """
 
 __version__ = "0.1.0"
