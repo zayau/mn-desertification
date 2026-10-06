@@ -48,6 +48,57 @@ The first five were agreed on 4 October 2026, before any trend was computed. The
 - When individual sites are flagged as declining, the false discovery rate is controlled. Otherwise results are reported as shares of sites.
 - The cut-off year and test period for step 3 are fixed before any prediction model is trained.
 
+## The satellite check (step 2)
+
+Planned on 6 October 2026, before any satellite value was extracted for this study.
+
+Step 1 changed what this step has to answer. Clipped biomass fell at the sites over 2011–2020, relative to the weather, while the release's MODIS greenness, measured at 500 m, did not ([findings.md](findings.md)). The release holds no Landsat values for the sites.
+
+### Questions
+
+1. **Replication.** Does greenness extracted here from the same MODIS product match the release's table? This tests the extraction, and shows which dates and footprint the release's values stand for.
+2. **Scale.** Does Landsat greenness at 30 m, close to each plot, decline over 2011–2020 after rain and temperature, where MODIS at 500 m did not?
+3. **Agreement with the field.** How closely does Landsat greenness follow biomass at the same sites, from year to year and between sites, compared with MODIS?
+4. **The long record.** Relative to the weather, is 2011–2020 unusual within the Landsat record, which starts in the 1980s?
+
+### Data
+
+All of it comes through Earth Engine, with the dataset IDs in [../sources/datasets.md](../sources/datasets.md).
+
+| Role | Data | Note |
+|---|---|---|
+| MODIS reflectance | MCD43A4, 500 m, daily, from 2000 | The product behind the release's site table |
+| Landsat surface reflectance | Collection 2 Level 2 from Landsat 5, 7, 8 and 9, from 1984 | 30 m |
+| Weather | The release's soum table, 1970–2024 | As in step 1 |
+
+### Rules set before the extraction
+
+- **Index.** NDVI is the main measure, as in step 1 and in the residual-trend method (Evans & Geerken 2004, Wessels et al. 2012). MSAVI, which corrects for bare soil between plants, is the check for sparse cover.
+- **Season.** The value for a site and year is the median of its clear observations from 1 July to 31 August, the weeks up to and around the August clipping. Two checks use August alone and the highest value from June to September.
+- **Footprint.** The value is the mean of the pixels within 100 m of the plot, the radius the release used. A check uses 50 m. The size of a NAMEM plot is not given in the sources read so far.
+- **Clouds.** Pixels flagged as cloud, cloud shadow or snow in each product's quality band are dropped. A site-year with no clear observation in the season is missing.
+- **Sensors.** Landsat 8 and 9 reflectance is converted to the Landsat 7 scale with the published coefficients of Roy et al. (2016), as in the release. Landsat 5 and 7 values are used as they are. The change of sensor falls in 2013, inside the decade that matters, so two checks guard against a step:
+  - the years in which two sensors overlap are compared directly;
+  - the 2011–2020 trend is repeated with Landsat 7 alone, and set against MODIS, which is one product through the whole period.
+- **Enough data.** The number of sites with a value in each year is reported before any greenness value is analysed.
+  - For 2011–2020 a site needs 8 of the 10 years, as in step 1.
+  - For longer periods a site needs 80% of the years.
+  - The long record starts in the first year from which every year has a value at 70% of the sites or more.
+- **Analysis.** Greenness is analysed like biomass in step 1: in logs, each site against its own average, with rain and summer temperature removed zone by zone. The results are the trend of the yearly mean with its 95% range, and the share of sites declining. For the long record, the standard version of the method is reported alongside: each site's greenness is regressed on its own rain, and a trend is fitted through the residuals (Evans & Geerken 2004).
+- **Seeing the field decline.** As in step 1, the Landsat trend is set against the change expected if greenness had followed biomass, at its year-to-year rate and at its between-site rate. Both rates are estimated again for Landsat.
+- **Standing in for the field.** The satellite record is read as a stand-in for field biomass before 2007 only in what it reproduces over 2007–2020: the ranking of good and bad years, and the 2011–2020 trend relative to the weather. What it fails to reproduce there is not inferred from it for earlier years.
+
+### Order of work
+
+Each stage is a notebook that saves its table to `data/processed/`, so later notebooks run without a connection.
+
+1. Access to Earth Engine, and a test at one site.
+2. The MODIS replication (question 1).
+3. The Landsat extraction, with the counts of clear observations.
+4. The sensor checks.
+5. Trends and the comparison with biomass (questions 2 to 4).
+6. Weather at each site's coordinates from ERA5-Land, as a check on the soum averages used so far.
+
 ## Known risks
 
 - Single clippings are noisy, so declines may be detectable only for groups of sites.
