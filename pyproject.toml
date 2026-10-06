@@ -21,6 +21,7 @@ dependencies = [
 
 [project.optional-dependencies]
 notebooks = ["jupyter", "ipywidgets", "colorcet"]
+satellite = ["earthengine-api"]
 dev = ["pytest"]
 
 [project.urls]
