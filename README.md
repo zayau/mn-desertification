@@ -61,8 +61,15 @@ Notebook 5 extracts satellite data through Google Earth Engine. It needs the `sa
 | [03-detection-and-robustness](notebooks/03-detection-and-robustness.ipynb) | Tests what the method can detect, whether the order of years is unusual, and whether the results depend on the choices made |
 | [04-grazing](notebooks/04-grazing.ipynb) | Compares satellite greenness, herds and seasonal pastures with the decline |
 | [05-modis-replication](notebooks/05-modis-replication.ipynb) | Extracts MODIS greenness at the sites through Earth Engine, tests the extraction, compares it with the release's table and repeats the greenness trends |
+| [06-landsat-counts](notebooks/06-landsat-counts.ipynb) | Counts what the Landsat extraction holds at the sites: clear observations by sensor and year, and whether there are enough |
 
-Once the data are in place, the first four notebooks run in about a minute. Notebook 5 takes about 15 minutes on its first run and seconds after that, because it saves what it extracts. The unit tests need no data and no connection:
+Once the data are in place, the first four notebooks run in about a minute. Notebook 5 takes about 15 minutes on its first run and seconds after that, because it saves what it extracts. Notebook 6 needs the Landsat tables, which a script extracts in about an hour and which can be stopped and started again:
+
+```bash
+.venv/bin/python scripts/extract_landsat.py
+```
+
+The unit tests need no data and no connection:
 
 ```bash
 .venv/bin/pytest
