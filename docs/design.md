@@ -68,20 +68,27 @@ All of it comes through Earth Engine, with the dataset IDs in [../sources/datase
 | Role | Data | Note |
 |---|---|---|
 | MODIS reflectance | MCD43A4, 500 m, daily, from 2000 | The product behind the release's site table |
-| Landsat surface reflectance | Collection 2 Level 2 from Landsat 5, 7, 8 and 9, from 1984 | 30 m |
+| Landsat surface reflectance | Collection 2 Level 2, Tier 1, from Landsat 5, 7, 8 and 9, from 1984 | 30 m |
 | Weather | The release's soum table, 1970–2024 | As in step 1 |
 
 ### Rules set before the extraction
 
+The Landsat rules were changed on 11 October 2026, after the MODIS stage and before any Landsat value was analysed. Greenness is now extracted scene by scene and summarised afterwards. That allows the sensors to be compared scene by scene, and every check to run on one saved table. The MODIS stage followed the earlier order: each pixel's median over the season first, then the mean within the circle. The sensor checks measure what that difference in order does to the MODIS values.
+
 - **Index.** NDVI is the main measure, as in step 1 and in the residual-trend method (Evans & Geerken 2004, Wessels et al. 2012). MSAVI, which corrects for bare soil between plants, is the check for sparse cover.
-- **Season.** Each pixel's value for a year is the median of its clear observations from 1 July to 31 August, the weeks up to and around the August clipping. Two checks use August alone and the highest value from June to September.
-- **Footprint.** A site's value is the mean of those pixel values within 100 m of the plot, the radius the release used. Each pixel counts by the share of it that lies inside the circle, which Earth Engine measures in steps of about 1/256 of a pixel. MODIS is read on the product's own pixel grid, without resampling. A check uses 50 m. The size of a NAMEM plot is not given in the sources read so far.
-- **Clouds.** Pixels flagged as cloud, cloud shadow or snow in each product's quality band are dropped. A site-year with no clear observation in the season is missing.
+- **Observation.** One scene gives a site one observation: the mean red and the mean near-infrared reflectance of the clear pixels within 100 m of the plot, on the scene's own pixel grid. The indices are computed from those two means, as a sensor with that footprint would measure them.
+  - Each pixel counts by the share of it that lies inside the circle, which Earth Engine measures in steps of about 1/256 of a pixel.
+  - 100 m is the radius the release used. A check uses 50 m. The size of a NAMEM plot is not given in the sources read so far.
+  - A second check uses the mean of the pixels' own NDVI in place of the NDVI of the mean reflectances.
+  - A satellite pass is cut into scenes that overlap at their edges and share a pixel grid. The scenes of a pass are joined before the extraction, so a site in an overlap is counted once.
+- **Clear pixels.** A Landsat pixel is clear when its quality band flags none of fill, cloud, dilated cloud, cirrus, cloud shadow and snow, when neither of the two bands is saturated, and when both reflectances lie between 0 and 1. An observation counts when at least half of the circle is clear. A check requires 90%.
   - The MODIS product has no such flags to apply. Each of its daily values is fitted to the cloud-free observations of 16 days, by a full inversion when there are enough of them and by a lower-quality magnitude inversion otherwise.
   - Both kinds are kept, so that cloudy weeks are not left out. A check keeps full inversions only, which the product's guide advises for scientific use.
-- **Sensors.** Landsat 8 and 9 reflectance is converted to the Landsat 7 scale with the published coefficients of Roy et al. (2016), as in the release. Landsat 5 and 7 values are used as they are. The change of sensor falls in 2013, inside the decade that matters, so two checks guard against a step:
-  - the years in which two sensors overlap are compared directly;
-  - the 2011–2020 trend is repeated with Landsat 7 alone, and set against MODIS, which is one product through the whole period.
+- **Season.** A site's value for a year is the median of its observations from 1 July to 31 August, the weeks up to and around the August clipping. Two checks use August alone and the highest value from June to September, so the extraction covers June to September. A site-year with no observation in the season is missing.
+- **Sensors.** Landsat 8 and 9 reflectance is converted to the Landsat 7 scale with the published coefficients of Roy et al. (2016, Table 2, ordinary least squares on surface reflectance), as in the release. Red becomes 0.0123 + 0.9372 times its value, and near infrared 0.0448 + 0.8339 times its value. Landsat 5 and 7 values are used as they are. The conversion is applied to the saved means, so it can be left out or replaced without a new extraction. The change of sensor falls in 2013, inside the decade that matters, so three checks guard against a step:
+  - observations of two sensors at the same site within eight days of each other are compared directly, with and without the conversion;
+  - the trends are repeated without the conversion, which Earth Engine's [guide to it](https://developers.google.com/earth-engine/tutorials/community/landsat-etm-to-oli-harmonization) calls unnecessary for the current Landsat collection;
+  - the 2011–2020 trend is repeated with Landsat 7 alone, and set against MODIS, which is one product through the whole period. Landsat 7 has drifted to an earlier time of day since 2017 (Earth Engine catalog), which that check has to allow for.
 - **Replication.** The release describes its indices as June to August means, and the file name of its site table says August. The table itself does not say which it holds.
   - MODIS values are extracted for the three windows this leaves open (June to August, July and August, August alone), as means and as medians, with and without the magnitude inversions, in a few years spread over the record.
   - Each version is compared with the release's values by correlation and mean absolute difference.
@@ -96,7 +103,7 @@ All of it comes through Earth Engine, with the dataset IDs in [../sources/datase
 
 ### Order of work
 
-Each stage is a notebook that saves its table to `data/processed/`, so later notebooks run without a connection.
+Each stage saves its table to `data/processed/`, so later stages run without a connection. The Landsat extraction takes hours and runs as a script, not in a notebook.
 
 1. Access to Earth Engine, and a test at one site.
 2. The MODIS replication (question 1).
