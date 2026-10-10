@@ -77,10 +77,10 @@ Once the data are in place, the first four notebooks run in about a minute. Note
 | [docs/data-checks.md](docs/data-checks.md) | What the data hold and what the first checks showed |
 | [docs/findings.md](docs/findings.md) | What the analysis has shown so far |
 | [notebooks/](notebooks/) | The analysis, in numbered notebooks run in order |
-| [src/mn_desertification/](src/mn_desertification/) | The analysis package: data readers, the rules, the weather model, the trend, detection and grazing tests, and the satellite extraction |
+| [src/mn_desertification/](src/mn_desertification/) | The analysis package: data readers, the rules, the weather model, the trend, detection and grazing tests, the satellite extraction, and the handling of what it extracts |
 | [tests/](tests/) | Unit tests for the package, on small synthetic data |
 | [sources/](sources/) | The evidence base: the evidence table, the bibliography, the data inventory and the search log |
-| [scripts/](scripts/) | The literature search tool, and a first look at the biomass data |
+| [scripts/](scripts/) | The literature search tool, a first look at the biomass data, and the Landsat extraction |
 | `data/` | The downloaded data and the tables the notebooks write. Git keeps only [data/README.md](data/README.md), which says how to get the data |
 | [pyproject.toml](pyproject.toml) | Package metadata and dependencies |
 
