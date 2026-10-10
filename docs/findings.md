@@ -351,3 +351,31 @@ The greenness analysis above was repeated with each version: in logs, each site 
 - **The result holds.** In every version greenness is flat over 2011–2020, with a range that spans zero and no more sites declining than chance gives, and it rises over 2000–2024.
 - **The yearly means agree in part.** Those of the extracted versions correlate at 0.83 and 0.84 with the release's over 2011–2020.
 - **So the finding does not depend on how the release built its table.** MODIS greenness at 500 m around the plots did not decline while clipped biomass did.
+
+### Landsat at the sites, 11 October 2026
+
+Landsat reflectance was extracted at every site for every overpass from June to September, 1984 to 2024, from Landsat 5, 7, 8 and 9. The rules of [design.md](design.md) changed before this extraction: a site now gets one observation per overpass, the mean red and near-infrared reflectance of the clear pixels within 100 m, and the season is summarised afterwards. Notebook 6 has the counts below. No greenness value was looked at for them.
+
+**What was extracted**
+
+- **1.2 million rows,** each one site, one circle (100 m or the 50 m check) and one overpass. Landsat 5 and Landsat 7 each give about 4,000 overpasses, Landsat 8 about 2,300 and Landsat 9 about 600.
+- **The saved rows equal a fresh request** for one site and month.
+- **Landsat 7 stands apart.** At least half of the circle is clear in 81% of its observations, against 96 to 97% for the other sensors. Its scenes have striped gaps after May 2003.
+
+**Enough data**
+
+An observation counts when it falls between 1 July and 31 August and at least half of the 100 m circle is clear. A site has a value in a year when it has at least one such observation.
+
+| Years | Sites with a value, of 1,488 |
+|---|---|
+| 1984, 1985 | 0 and 4 |
+| 1986 to 1988 | 738 to 861 (50 to 58%) |
+| 1989, 1990 | 1,152 and 1,243 (77% and 84%) |
+| 1991 to 1999 | 1,286 to 1,467 (86 to 99%) |
+| 2000 to 2024 | 1,411 to 1,488 (95 to 100%) |
+
+- **The long record starts in 1989,** the first year from which every year has a value at 70% of the sites. That is eleven years before MODIS.
+- **Every site has enough years.** All 1,488 sites have a value in at least 8 of the 10 years 2011–2020, and 1,391 in all ten. Field biomass had 1,250 such sites. All 1,488 also have at least 80% of the years from 1989 to 2024.
+- **2012 is the thinnest year since 2000,** with 1,411 sites and a median of 2 observations per site. Landsat 7 was the only sensor that summer.
+- **The sensors change inside the decade.** Landsat 5 ends in 2011, Landsat 7 runs through, and Landsat 8 starts in 2013. Landsat 7 alone gives 1,468 sites at least 8 of the 10 years.
+- **The stricter checks cost little.** Requiring 90% of the circle to be clear leaves 54,179 of 54,450 site-years, and the 50 m circle leaves as many as the 100 m one.
