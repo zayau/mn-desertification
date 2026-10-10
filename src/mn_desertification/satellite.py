@@ -370,6 +370,24 @@ def observations_at_sites(images: ee.ImageCollection, circles: ee.FeatureCollect
     return table.astype({"gid": int}).sort_values(["gid", "radius_m", "time"], ignore_index=True)
 
 
+def daily_values_at_sites(images: ee.ImageCollection, footprints: ee.FeatureCollection, grid: ee.Projection,
+                          bands: Iterable[str] = ("red", "nir")) -> pd.DataFrame:
+    """Some bands of every image at every footprint, with all the images in one request.
+
+    This sends the work to Earth Engine and waits for the answer. It suits
+    images that share a pixel grid and cover every site, as the daily MODIS
+    images do, a month at a time. Returns one row per site and image:
+    ``gid``, ``date`` and a column per band, the mean within the footprint.
+    """
+    bands = list(bands)
+    # Stacked, each image's bands are named by its date, as in 2012_07_01_red
+    wide = values_at_sites(images.select(bands).toBands(), footprints, grid)
+    long = wide.melt(id_vars="gid", var_name="name", value_name="value")
+    long["date"] = pd.to_datetime(long["name"].str.slice(0, 10), format="%Y_%m_%d")
+    long["band"] = long["name"].str.slice(11)
+    return long.pivot(index=["gid", "date"], columns="band", values="value")[bands].reset_index().rename_axis(columns=None)
+
+
 def pixels_near(image: ee.Image, lon: float, lat: float, grid: ee.Projection, distance_m: float) -> pd.DataFrame:
     """Every pixel of ``image`` whose centre lies within ``distance_m`` of a point.
 

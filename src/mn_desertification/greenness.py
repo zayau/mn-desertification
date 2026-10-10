@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 from .paths import PROCESSED_DIR
-from .rules import SEASON_FIRST, SEASON_LAST
+from .rules import SEASON_FIRST, SEASON_LAST, TO_LANDSAT7
 
 # The side of a Landsat pixel, in metres.
 LANDSAT_PIXEL_M = 30
@@ -74,3 +74,45 @@ def long_record_start(sites_with_value: pd.Series, needed: float) -> int | None:
         return None
     # The record starts the year after the last year that falls short
     return int(short[short].index.max()) + 1 if short.any() else years[0]
+
+
+def with_indices(observations: pd.DataFrame, to_landsat7: bool = True) -> pd.DataFrame:
+    """The observations with NDVI and MSAVI computed from the mean reflectances of each circle.
+
+    The files also hold the mean of the pixels' own indices, as ``ndvi`` and
+    ``msavi``. Those are renamed ``ndvi_pixels`` and ``msavi_pixels``, and
+    ``ndvi`` and ``msavi`` become the indices of the mean ``red`` and ``nir``,
+    as a sensor with the circle as its footprint would measure them.
+
+    With ``to_landsat7``, the reflectance of Landsat 8 and 9 is first put on
+    the Landsat 7 scale (``rules.TO_LANDSAT7``). The pixel means are left as
+    they were measured.
+    """
+    table = observations.rename(columns={"ndvi": "ndvi_pixels", "msavi": "msavi_pixels"})
+    red, nir = table["red"].copy(), table["nir"].copy()
+    if to_landsat7:
+        newer = table["sensor"].isin(["landsat8", "landsat9"])
+        red[newer] = TO_LANDSAT7["red"][0] + TO_LANDSAT7["red"][1] * red[newer]
+        nir[newer] = TO_LANDSAT7["nir"][0] + TO_LANDSAT7["nir"][1] * nir[newer]
+    ndvi = (nir - red) / (nir + red)
+    msavi = (2 * nir + 1 - np.sqrt((2 * nir + 1) ** 2 - 8 * (nir - red))) / 2
+    return table.assign(red=red, nir=nir, ndvi=ndvi, msavi=msavi)
+
+
+def sensor_pairs(observations: pd.DataFrame, first_sensor: str, second_sensor: str, days: int = 8) -> pd.DataFrame:
+    """Observations of two sensors at the same site and circle, at most ``days`` days apart.
+
+    Returns one row per pair, with the columns of each observation ending in
+    ``_first`` and ``_second``, and ``days_apart``, the second sensor's day
+    minus the first's. An observation with several partners appears in
+    several pairs.
+    """
+    wanted = ["gid", "radius_m", "time", "red", "nir", "ndvi", "msavi"]
+    first = observations.loc[observations["sensor"] == first_sensor, wanted]
+    second = observations.loc[observations["sensor"] == second_sensor, wanted]
+    # Pairing within the year keeps the table small; the extraction holds June to September only
+    first = first.assign(year=first["time"].dt.year)
+    second = second.assign(year=second["time"].dt.year)
+    pairs = first.merge(second, on=["gid", "radius_m", "year"], suffixes=("_first", "_second"))
+    pairs["days_apart"] = (pairs["time_second"].dt.floor("D") - pairs["time_first"].dt.floor("D")).dt.days
+    return pairs[pairs["days_apart"].abs() <= days].reset_index(drop=True)

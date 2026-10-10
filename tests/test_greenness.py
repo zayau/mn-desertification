@@ -1,7 +1,9 @@
 import numpy as np
 import pandas as pd
 
-from mn_desertification.greenness import add_clear_share, clearest_per_day, in_season, long_record_start, read_landsat
+from mn_desertification.greenness import (add_clear_share, clearest_per_day, in_season, long_record_start,
+                                          read_landsat, sensor_pairs, with_indices)
+from mn_desertification.rules import TO_LANDSAT7
 
 
 def observation(**changes):
@@ -58,3 +60,32 @@ def test_read_landsat_reads_times_with_and_without_fractions(tmp_path):
     table = read_landsat(tmp_path)
     assert len(table) == 2
     assert table["time"].dt.second.to_list() == [2, 26]
+
+
+def test_with_indices_converts_the_newer_sensors_only_and_keeps_the_pixel_means():
+    table = pd.DataFrame([observation(sensor="landsat7", ndvi=0.48, msavi=0.3),
+                          observation(sensor="landsat8", ndvi=0.48, msavi=0.3)])
+    measured = with_indices(table, to_landsat7=False)
+    assert np.allclose(measured["ndvi"], (0.3 - 0.1) / (0.3 + 0.1))
+    assert measured["ndvi_pixels"].to_list() == [0.48, 0.48]
+
+    converted = with_indices(table)
+    red8 = TO_LANDSAT7["red"][0] + TO_LANDSAT7["red"][1] * 0.1
+    nir8 = TO_LANDSAT7["nir"][0] + TO_LANDSAT7["nir"][1] * 0.3
+    assert np.allclose(converted["red"], [0.1, red8]) and np.allclose(converted["nir"], [0.3, nir8])
+    assert np.allclose(converted["ndvi"], [0.5, (nir8 - red8) / (nir8 + red8)])
+    assert converted["ndvi_pixels"].to_list() == [0.48, 0.48]
+
+
+def test_sensor_pairs_keeps_observations_of_one_site_within_the_days_allowed():
+    table = with_indices(pd.DataFrame([
+        observation(sensor="landsat7", time=pd.Timestamp("2015-07-03 03:50:00"), ndvi=0.5, msavi=0.3),
+        observation(sensor="landsat8", time=pd.Timestamp("2015-07-11 03:52:50"), ndvi=0.5, msavi=0.3),   # 8 days later
+        observation(sensor="landsat8", time=pd.Timestamp("2015-07-02 03:58:00"), ndvi=0.5, msavi=0.3),   # 1 day earlier
+        observation(sensor="landsat8", time=pd.Timestamp("2015-07-27 03:52:00"), ndvi=0.5, msavi=0.3),   # too late
+        observation(sensor="landsat8", gid=2, time=pd.Timestamp("2015-07-04 03:52:00"), ndvi=0.5, msavi=0.3),  # another site
+    ]))
+    pairs = sensor_pairs(table, "landsat7", "landsat8")
+    assert sorted(pairs["days_apart"]) == [-1, 8]
+    assert {"red_first", "red_second", "ndvi_first", "ndvi_second"} <= set(pairs.columns)
+    assert len(sensor_pairs(table, "landsat7", "landsat8", days=1)) == 1

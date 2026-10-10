@@ -59,3 +59,15 @@ def test_sites_under_overpasses_matches_sites_to_the_scenes_that_cover_them():
     assert covered["gid"].to_list() == [1, 2]
     # The time survives the trip as milliseconds
     assert pd.to_datetime(when.value // 1_000_000, unit="ms") == when
+
+
+def test_the_local_index_formulas_are_the_ones_sent_to_earth_engine():
+    import pandas as pd
+
+    from mn_desertification.greenness import with_indices
+
+    red, nir = np.array([0.10, 0.20, 0.05]), np.array([0.40, 0.20, 0.45])
+    table = pd.DataFrame({"sensor": "landsat7", "red": red, "nir": nir, "ndvi": 0.0, "msavi": 0.0})
+    local = with_indices(table)
+    assert np.allclose(local["ndvi"], work_out(INDEX_FORMULAS["ndvi"], red, nir))
+    assert np.allclose(local["msavi"], work_out(INDEX_FORMULAS["msavi"], red, nir))
