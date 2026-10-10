@@ -37,7 +37,7 @@ To set it up:
 
 ## Processed tables
 
-The notebooks write their tables to `processed/`. Run the notebooks in order, `01` to `04`, to rebuild them.
+The notebooks write their tables to `processed/`. Run the notebooks in order, `01` to `05`, to rebuild them.
 
 | File | Written by | Content |
 |---|---|---|
@@ -51,6 +51,9 @@ The notebooks write their tables to `processed/`. Run the notebooks in order, `0
 | `soums.csv` | 04 | One row per soum: biomass and greenness responses, herd measures, zone and aimag |
 | `herd_tests.csv` | 04 | The herd tests |
 | `pasture_tests.csv` | 04 | The pasture-type tests |
+| `modis_candidates.csv` | 05 | MODIS greenness at every site in three test years, in twelve versions of window, summary and quality |
+| `modis_august_mean.csv` | 05 | One row per site and year, 2000–2024: the August mean of MODIS NDVI and MSAVI within 100 m of the plot, and the number of days behind it |
+| `modis_jul_aug_median.csv` | 05 | The same for the median of July and August, the rule of the satellite check |
 
 ## NAMEM's full monitoring records
 
