@@ -46,5 +46,21 @@ SEASON_FIRST = (7, 1)
 SEASON_LAST = (8, 31)
 
 # Greenness is averaged within this many metres of each plot, the radius the
-# release used.
+# release used, and within a smaller circle as a check.
 FOOTPRINT_M = 100
+CHECK_FOOTPRINT_M = 50
+
+# The weeks that are extracted, as (month, day): June to September, the widest
+# window that any check needs.
+EXTRACT_FIRST = (6, 1)
+EXTRACT_LAST = (9, 30)
+
+# A scene counts for a site when at least this share of the circle is clear.
+# A check uses the stricter share.
+MIN_CLEAR = 0.5
+CHECK_MIN_CLEAR = 0.9
+
+# Landsat 8 and 9 reflectance on the Landsat 7 scale: intercept and slope for
+# each band (Roy et al. 2016, Table 2, ordinary least squares on surface
+# reflectance).
+TO_LANDSAT7 = {"red": (0.0123, 0.9372), "nir": (0.0448, 0.8339)}
