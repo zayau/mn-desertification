@@ -302,3 +302,52 @@ Mean site trend by zone and pasture type, 2011–2020, in log10 per decade:
 - **Linked to herds.** Within zones, soums where herds grew more lost more biomass, also without 2020. The link is strongest on winter-spring ranges, not on the summer-fall ranges grazed before the clipping.
 - **Grazing is the leading suspect, but the mechanism is open.** The evidence does not single out animals eating the grass before the August clipping. Longer-lasting effects of more animals fit as well, and so do grazing outside the mapped seasons or factors that go with herd growth. A change in the clipping method is not ruled out.
 - **What can decide.** NAMEM's plant groups, seasonal use and records after 2020 can tell these apart.
+
+## The satellite check
+
+### MODIS greenness, extracted again, 10 October 2026
+
+The greenness comparison above used the release's table of MODIS values at the sites. Here the same greenness was extracted from the MODIS archive (MCD43A4, 500 m) through Google Earth Engine, under the rules that [design.md](design.md) sets for the satellite check. Notebook 5 has the code and the numbers.
+
+**The extraction**
+
+- **The rule.** A site's value for a year is the median of 1 July to 31 August in each pixel, averaged within 100 m of the plot.
+- **It matches a value worked out by hand.** At site 63 in 2015, whose circle lies inside one pixel, the extraction returns the median of the daily series (NDVI 0.6255).
+- **Most circles reach into a neighbouring pixel.** Earth Engine weighs the pixels by their share of the circle, which it measures in steps of about 1/256 of a pixel. At site 1 the plot's own pixel carries 61.5% of the weight, and the four pixels around the plot span 0.09 in NDVI.
+- **There is no shortage of data.** Every site has a value in every year from 2000 to 2024, and the median site has 58 to 62 days behind it.
+
+**Against the release's table**
+
+The release describes its indices as June to August means, and the file name of its site table says August. Twelve versions were extracted in three test years (2002, 2012 and 2022): three windows, each as a mean and as a median, with all values and with full inversions only. The six versions with all values:
+
+| Window | Summary | Correlation with the release | Mean absolute gap | Mean gap |
+|---|---|---|---|---|
+| June to August | mean | 0.973 | 0.038 | −0.030 |
+| June to August | median | 0.973 | 0.033 | −0.022 |
+| July and August | mean | 0.987 | 0.019 | −0.007 |
+| July and August | median | 0.989 | 0.017 | −0.002 |
+| August | mean | 0.990 | 0.017 | 0.000 |
+| August | median | 0.989 | 0.018 | +0.003 |
+
+The gap is this extraction minus the release, in NDVI.
+
+- **The release's site table is a late-summer value,** close to an August mean. The June to August versions lie 0.02 to 0.03 below it.
+- **It could not be reproduced exactly.** The closest versions differ from it by 0.017 NDVI on average. Keeping full inversions only changes the gap by less than 0.001. The cause of the remaining difference was not found.
+- **Over all 25 years** the August mean correlates at 0.985 with the release's table (mean absolute gap 0.021), and the July and August median at 0.986 (0.019).
+
+**The greenness trends again**
+
+The greenness analysis above was repeated with each version: in logs, each site against its own average, with rain and summer temperature removed zone by zone.
+
+| Version | Period | Trend, log10 per decade | 95% range | Sites tested | Sites declining |
+|---|---|---|---|---|---|
+| Release's table | 2011–2020 | +0.001 | −0.050 to +0.052 | 1,487 | 5.0% |
+| Extracted, August mean | 2011–2020 | +0.021 | −0.041 to +0.084 | 1,488 | 2.3% |
+| Extracted, July and August median | 2011–2020 | −0.007 | −0.057 to +0.043 | 1,488 | 5.0% |
+| Release's table | 2000–2024 | +0.033 | +0.021 to +0.044 | 1,486 | 0.7% |
+| Extracted, August mean | 2000–2024 | +0.037 | +0.025 to +0.050 | 1,488 | 0.3% |
+| Extracted, July and August median | 2000–2024 | +0.033 | +0.020 to +0.045 | 1,488 | 0.5% |
+
+- **The result holds.** In every version greenness is flat over 2011–2020, with a range that spans zero and no more sites declining than chance gives, and it rises over 2000–2024.
+- **The yearly means agree in part.** Those of the extracted versions correlate at 0.83 and 0.84 with the release's over 2011–2020.
+- **So the finding does not depend on how the release built its table.** MODIS greenness at 500 m around the plots did not decline while clipped biomass did.
