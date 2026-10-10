@@ -47,12 +47,15 @@ INDEX_FORMULAS = {
 }
 
 
-def connect(project: str | None = None) -> None:
+def connect(project: str | None = None, patience_s: float = 600) -> None:
     """Start a session with Earth Engine.
 
     With no ``project``, the one stored by ``earthengine set_project`` is used.
+    A request that has no answer after ``patience_s`` seconds fails, so that
+    nothing waits forever.
     """
     ee.Initialize(project=project)
+    ee.data.setDeadline(patience_s * 1000)
 
 
 def season_dates(year: int, first: tuple = SEASON_FIRST, last: tuple = SEASON_LAST) -> tuple[str, str]:
