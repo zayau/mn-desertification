@@ -80,7 +80,7 @@ The Landsat rules were changed on 11 October 2026, after the MODIS stage and bef
   - Each pixel counts by the share of it that lies inside the circle, which Earth Engine measures in steps of about 1/256 of a pixel.
   - 100 m is the radius the release used. A check uses 50 m. The size of a NAMEM plot is not given in the sources read so far.
   - A second check uses the mean of the pixels' own NDVI in place of the NDVI of the mean reflectances.
-  - A satellite pass is cut into scenes that overlap at their edges and share a pixel grid. The scenes of a pass are joined before the extraction, so a site in an overlap is counted once.
+  - A satellite pass is cut into scenes that overlap at their edges. Scenes on the same pixel grid are joined before the extraction, so a site in their overlap is counted once. Where a pass changes map zone, and with it the grid, a site in the overlap has two observations of the same day, and the clearer one is kept.
 - **Clear pixels.** A Landsat pixel is clear when its quality band flags none of fill, cloud, dilated cloud, cirrus, cloud shadow and snow, when neither of the two bands is saturated, and when both reflectances lie between 0 and 1. An observation counts when at least half of the circle is clear. A check requires 90%.
   - The MODIS product has no such flags to apply. Each of its daily values is fitted to the cloud-free observations of 16 days, by a full inversion when there are enough of them and by a lower-quality magnitude inversion otherwise.
   - Both kinds are kept, so that cloudy weeks are not left out. A check keeps full inversions only, which the product's guide advises for scientific use.

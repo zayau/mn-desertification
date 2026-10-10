@@ -5,7 +5,8 @@ this saves what the overpass shows within 100 m and within 50 m of the plot.
 The table of ``satellite.landsat_observations`` is written to
 ``data/processed/landsat/``, one file per sensor and year.
 
-The whole record takes about an hour. A sensor-year that already has a file is skipped,
+The whole record takes about an hour and about 100 hours of Earth Engine's
+compute allowance. A sensor-year that already has a file is skipped,
 so the script can be stopped and started again, and a failed sensor-year is
 tried again on the next run.
 
