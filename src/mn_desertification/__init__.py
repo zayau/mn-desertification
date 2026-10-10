@@ -13,6 +13,7 @@ The package holds the steps that the notebooks in ``notebooks/`` share:
 - ``grazing``: herd measures and soum-level responses.
 - ``satellite``: greenness at the sites from Google Earth Engine. It needs the
   optional ``satellite`` dependencies and is imported only where it is used.
+- ``greenness``: the extracted satellite observations, and which of them count.
 """
 
 __version__ = "0.1.0"

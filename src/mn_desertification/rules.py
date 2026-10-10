@@ -60,6 +60,12 @@ EXTRACT_LAST = (9, 30)
 MIN_CLEAR = 0.5
 CHECK_MIN_CLEAR = 0.9
 
+# The long record starts in the first year from which every year has a value
+# at this share of the sites. Over a period longer than the main one, a site
+# needs a value in this share of the years.
+LONG_MIN_SITES = 0.7
+LONG_MIN_YEARS = 0.8
+
 # Landsat 8 and 9 reflectance on the Landsat 7 scale: intercept and slope for
 # each band (Roy et al. 2016, Table 2, ordinary least squares on surface
 # reflectance).
