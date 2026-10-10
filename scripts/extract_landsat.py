@@ -66,7 +66,8 @@ def main() -> int:
             print(f"[{number}/{len(jobs)}] {sensor} {year}: FAILED, {str(error).splitlines()[0][:150]}", flush=True)
             continue
         table.insert(0, "sensor", sensor)
-        table.to_csv(out_dir / f"{sensor}_{year}.csv", index=False)
+        # Times are written to the second, in one format for every row
+        table.to_csv(out_dir / f"{sensor}_{year}.csv", index=False, date_format="%Y-%m-%d %H:%M:%S")
         print(f"[{number}/{len(jobs)}] {sensor} {year}: {len(table)} rows, "
               f"{table['overpass'].nunique()} overpasses, {table['gid'].nunique()} sites, {time.time() - began:.0f} s", flush=True)
 

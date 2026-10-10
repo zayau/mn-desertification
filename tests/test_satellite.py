@@ -33,3 +33,29 @@ def test_season_dates_end_the_day_after_the_last_day():
     assert season_dates(2015) == ("2015-07-01", "2015-09-01")
     assert season_dates(2016, (8, 1), (8, 31)) == ("2016-08-01", "2016-09-01")
     assert season_dates(2015, (6, 1), (9, 30)) == ("2015-06-01", "2015-10-01")
+
+
+def test_sites_under_overpasses_matches_sites_to_the_scenes_that_cover_them():
+    import pandas as pd
+    import shapely
+
+    from mn_desertification.satellite import sites_under_overpasses
+
+    sites = pd.DataFrame({"gid": [1, 2, 3], "lon": [100.5, 101.5, 105.0], "lat": [47.5, 47.5, 47.5]})
+    scenes = pd.DataFrame({
+        "scene": ["a", "b", "c"],
+        # A time on a whole second and one with a fraction must both pass through
+        "time": pd.to_datetime(["2015-07-02 03:58:54", "2015-07-02 03:59:18.250", "2015-07-03 04:05:00"],
+                               format="ISO8601"),
+        "overpass": ["134_2015-07-02_48", "134_2015-07-02_48", "141_2015-07-03_47"],
+        "outline": [shapely.box(100, 47, 101, 48), shapely.box(101, 47, 102, 48), shapely.box(90, 47, 91, 48)],
+    })
+    plan = sites_under_overpasses(scenes, sites)
+    assert len(plan) == 1   # the second overpass covers no site
+    overpass, scene_names, when, covered = plan[0]
+    assert overpass == "134_2015-07-02_48"
+    assert scene_names == ["a", "b"]
+    assert when == pd.Timestamp("2015-07-02 03:58:54")
+    assert covered["gid"].to_list() == [1, 2]
+    # The time survives the trip as milliseconds
+    assert pd.to_datetime(when.value // 1_000_000, unit="ms") == when

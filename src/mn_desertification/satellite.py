@@ -188,6 +188,23 @@ def landsat_scenes(sensor: str, start: str, end: str, region: ee.Geometry) -> pd
     return table[["scene", "time", "overpass", "outline"]].sort_values("time", ignore_index=True)
 
 
+def sites_under_overpasses(scenes: pd.DataFrame, sites: pd.DataFrame) -> list[tuple]:
+    """Which sites each overpass covers, worked out from the outlines of its scenes.
+
+    ``scenes`` comes from ``landsat_scenes``. A site is covered when its plot
+    lies inside one of the overpass's scenes. Returns one entry per overpass
+    that covers a site: its label, the names of its scenes, the time of its
+    first scene and the rows of ``sites`` it covers.
+    """
+    points = shapely.points(sites["lon"], sites["lat"])
+    plan = []
+    for overpass, group in scenes.groupby("overpass"):
+        covered = sites[shapely.contains(shapely.union_all(group["outline"].to_list()), points)]
+        if len(covered):
+            plan.append((overpass, group["scene"].to_list(), group["time"].min(), covered))
+    return plan
+
+
 def landsat_observations(sensor: str, sites: pd.DataFrame, start: str, end: str,
                          radii: Iterable[float] = (FOOTPRINT_M, CHECK_FOOTPRINT_M), workers: int = 4) -> pd.DataFrame:
     """What every overpass of one Landsat sensor shows at every site it covers.
@@ -212,13 +229,7 @@ def landsat_observations(sensor: str, sites: pd.DataFrame, start: str, end: str,
               "nir_mean": "nir", "ndvi_mean": "ndvi", "msavi_mean": "msavi", "clear_sum": "clear_pixels"}
     scenes = landsat_scenes(sensor, start, end, sites_box(sites))
 
-    # The sites whose plot lies inside each overpass
-    points = shapely.points(sites["lon"], sites["lat"])
-    plan = []
-    for overpass, group in scenes.groupby("overpass"):
-        covered = sites[shapely.contains(shapely.union_all(group["outline"].to_list()), points)]
-        if len(covered):
-            plan.append((overpass, group["scene"].to_list(), group["time"].min(), covered))
+    plan = sites_under_overpasses(scenes, sites)
 
     # Several overpasses share a request, as long as the answer stays under 4,000 rows
     batches, rows_so_far = [[]], 0
@@ -238,7 +249,8 @@ def landsat_observations(sensor: str, sites: pd.DataFrame, start: str, end: str,
         # A joined image forgets its pixel grid, so it is given the grid of its scenes
         joined = joined.setDefaultProjection(images[0].select(red_band).projection())
         rows = joined.reduceRegions(collection=site_circles(covered, radii), reducer=reducer, tileScale=4)
-        labels = {"overpass": overpass, "time": when.isoformat()}
+        # The time travels as milliseconds since 1970, like the times Earth Engine gives
+        labels = {"overpass": overpass, "time": when.value // 1_000_000}
         return rows.filter(ee.Filter.gt("clear_sum", 0)).map(lambda row: row.set(labels))
 
     def ask(batch):
@@ -251,7 +263,7 @@ def landsat_observations(sensor: str, sites: pd.DataFrame, start: str, end: str,
         tables = list(pool.map(ask, [batch for batch in batches if batch]))
     table = pd.concat(tables, ignore_index=True) if tables else pd.DataFrame(columns=list(wanted))
     table = table.rename(columns=wanted).astype({"gid": int})
-    table["time"] = pd.to_datetime(table["time"])
+    table["time"] = pd.to_datetime(table["time"], unit="ms")
     return table.sort_values(["gid", "radius_m", "time"], ignore_index=True)
 
 
