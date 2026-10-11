@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
-from mn_desertification.greenness import (add_clear_share, clearest_per_day, in_season, long_record_start,
-                                          read_landsat, sensor_pairs, with_indices)
+from mn_desertification.greenness import (add_clear_share, clearest_per_day, fit_conversion, in_season,
+                                          long_record_start, read_landsat, sensor_pairs, with_indices)
 from mn_desertification.rules import TO_LANDSAT7
 
 
@@ -89,3 +89,25 @@ def test_sensor_pairs_keeps_observations_of_one_site_within_the_days_allowed():
     assert sorted(pairs["days_apart"]) == [-1, 8]
     assert {"red_first", "red_second", "ndvi_first", "ndvi_second"} <= set(pairs.columns)
     assert len(sensor_pairs(table, "landsat7", "landsat8", days=1)) == 1
+
+
+def test_fit_conversion_recovers_a_known_line_and_with_indices_applies_it():
+    rng = np.random.default_rng(3)
+    true_red, true_nir = rng.uniform(0.05, 0.3, 400), rng.uniform(0.15, 0.45, 400)
+    # The second sensor reads red 0.01 low and near infrared 5% high; both have a little noise
+    pairs = pd.DataFrame({
+        "red_first": true_red + rng.normal(scale=0.002, size=400),
+        "red_second": true_red - 0.01 + rng.normal(scale=0.002, size=400),
+        "nir_first": true_nir + rng.normal(scale=0.002, size=400),
+        "nir_second": true_nir * 1.05 + rng.normal(scale=0.002, size=400),
+    })
+    lines = fit_conversion(pairs)
+    assert np.isclose(lines["red"][0], 0.01, atol=0.002) and np.isclose(lines["red"][1], 1, atol=0.02)
+    assert np.isclose(lines["nir"][0], 0, atol=0.006) and np.isclose(lines["nir"][1], 1 / 1.05, atol=0.02)
+    # The other way round, the first sensor is put on the second's scale
+    back = fit_conversion(pairs, onto="second")
+    assert np.isclose(back["red"][0], -0.01, atol=0.002)
+
+    table = pd.DataFrame([observation(sensor="landsat7", ndvi=0.5, msavi=0.3), observation(sensor="landsat8", ndvi=0.5, msavi=0.3)])
+    converted = with_indices(table, conversions={"landsat8": {"red": (0.01, 1.0), "nir": (0.0, 0.9)}})
+    assert np.allclose(converted["red"], [0.1, 0.11]) and np.allclose(converted["nir"], [0.3, 0.27])

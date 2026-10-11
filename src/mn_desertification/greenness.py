@@ -76,7 +76,7 @@ def long_record_start(sites_with_value: pd.Series, needed: float) -> int | None:
     return int(short[short].index.max()) + 1 if short.any() else years[0]
 
 
-def with_indices(observations: pd.DataFrame, to_landsat7: bool = True) -> pd.DataFrame:
+def with_indices(observations: pd.DataFrame, to_landsat7: bool = True, conversions: dict | None = None) -> pd.DataFrame:
     """The observations with NDVI and MSAVI computed from the mean reflectances of each circle.
 
     The files also hold the mean of the pixels' own indices, as ``ndvi`` and
@@ -84,16 +84,21 @@ def with_indices(observations: pd.DataFrame, to_landsat7: bool = True) -> pd.Dat
     ``ndvi`` and ``msavi`` become the indices of the mean ``red`` and ``nir``,
     as a sensor with the circle as its footprint would measure them.
 
-    With ``to_landsat7``, the reflectance of Landsat 8 and 9 is first put on
-    the Landsat 7 scale (``rules.TO_LANDSAT7``). The pixel means are left as
-    they were measured.
+    The reflectance is first put on the Landsat 7 scale. ``conversions`` gives
+    the line for each sensor and band, as ``{sensor: {"red": (intercept,
+    slope), "nir": (intercept, slope)}}``; a sensor that is left out stays as
+    measured. With no ``conversions``, ``to_landsat7`` applies the published
+    lines to Landsat 8 and 9 (``rules.TO_LANDSAT7``) or, if False, leaves every
+    sensor as measured. The pixel means are never converted.
     """
+    if conversions is None:
+        conversions = {"landsat8": TO_LANDSAT7, "landsat9": TO_LANDSAT7} if to_landsat7 else {}
     table = observations.rename(columns={"ndvi": "ndvi_pixels", "msavi": "msavi_pixels"})
     red, nir = table["red"].copy(), table["nir"].copy()
-    if to_landsat7:
-        newer = table["sensor"].isin(["landsat8", "landsat9"])
-        red[newer] = TO_LANDSAT7["red"][0] + TO_LANDSAT7["red"][1] * red[newer]
-        nir[newer] = TO_LANDSAT7["nir"][0] + TO_LANDSAT7["nir"][1] * nir[newer]
+    for sensor, lines in conversions.items():
+        rows = table["sensor"] == sensor
+        red[rows] = lines["red"][0] + lines["red"][1] * red[rows]
+        nir[rows] = lines["nir"][0] + lines["nir"][1] * nir[rows]
     ndvi = (nir - red) / (nir + red)
     msavi = (2 * nir + 1 - np.sqrt((2 * nir + 1) ** 2 - 8 * (nir - red))) / 2
     return table.assign(red=red, nir=nir, ndvi=ndvi, msavi=msavi)
@@ -116,3 +121,22 @@ def sensor_pairs(observations: pd.DataFrame, first_sensor: str, second_sensor: s
     pairs = first.merge(second, on=["gid", "radius_m", "year"], suffixes=("_first", "_second"))
     pairs["days_apart"] = (pairs["time_second"].dt.floor("D") - pairs["time_first"].dt.floor("D")).dt.days
     return pairs[pairs["days_apart"].abs() <= days].reset_index(drop=True)
+
+
+def fit_conversion(pairs: pd.DataFrame, onto: str = "first") -> dict:
+    """The line for each band that puts one sensor's reflectance on the other's scale, fitted to their pairs.
+
+    ``pairs`` comes from ``sensor_pairs``. ``onto`` names the sensor whose
+    scale is kept, ``"first"`` or ``"second"``. The line is the reduced major
+    axis: its slope is the ratio of the two standard deviations, and it passes
+    through the two means. Unlike least squares, it allows for error in both
+    sensors, so it does not flatten the scale. Returns ``{"red": (intercept,
+    slope), "nir": (intercept, slope)}``, as ``with_indices`` takes them.
+    """
+    source = "second" if onto == "first" else "first"
+    lines = {}
+    for band in ["red", "nir"]:
+        kept, converted = pairs[f"{band}_{onto}"], pairs[f"{band}_{source}"]
+        slope = kept.std() / converted.std()
+        lines[band] = (float(kept.mean() - slope * converted.mean()), float(slope))
+    return lines
