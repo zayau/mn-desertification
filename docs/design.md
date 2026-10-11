@@ -1,6 +1,6 @@
 # Research design
 
-Phase 3 output. Draft of 4 October 2026. The question was agreed on that day. The rest is open to revision as the steps below report back.
+Phase 3 output. Draft of 4 October 2026. The question was agreed on that day and revised on 11 October 2026. All three steps have reported back ([findings.md](findings.md)).
 
 ## Question
 

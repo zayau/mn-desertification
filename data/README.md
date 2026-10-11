@@ -37,7 +37,7 @@ To set it up:
 
 ## Processed tables
 
-The notebooks write their tables to `processed/`. Run the notebooks in order, `01` to `11`, to rebuild them. The Landsat extraction takes about an hour and runs as a script, `.venv/bin/python scripts/extract_landsat.py`, which can be stopped and started again.
+The notebooks write their tables to `processed/`. Run the notebooks in order, `01` to `12`, to rebuild them. The Landsat extraction takes about an hour and runs as a script, `.venv/bin/python scripts/extract_landsat.py`, which can be stopped and started again.
 
 | File | Written by | Content |
 |---|---|---|

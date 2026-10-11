@@ -24,7 +24,7 @@ These results are for NAMEM's August biomass at its monitoring sites over 2011â€
 - **Satellite greenness around the plots does not decline, at 500 m or at 30 m.** MODIS shows no trend. Landsat within 100 m of the plots shows about âˆ’5% per decade, with a range that spans zero, and a small decline in the two driest zones. Pixel size is not why the satellites miss the decline.
 - **The Landsat sensors disagree at these sites.** Landsat 8 reads about a tenth greener than Landsat 7 on the same ground, and the published conversion removes less than half of that. A conversion fitted to the sites is used instead. Without it the decade's Landsat trend comes out positive.
 - **The weather at each site's own place changes none of this.** So far every site had the weather of its soum.
-- **A model with every Landsat signal sees about a quarter of the decline.** Tested on years left out of the fitting, it still leaves most of the trend, whether it is a straight line or boosted trees. Greenness carries what the satellites know, and the other bands add nothing.
+- **A model with every Landsat signal sees about a quarter of the decline.** Tested on years left out of the fitting, it still leaves most of the trend, whether it is a straight line or boosted trees. Greenness carries what the satellites know, and the other bands add nothing. What the model misses sits in the two bad years, 2017 and 2020, when clipped biomass fell much further than the satellite signals did.
 - **Soums where herds grew more lost more biomass,** also without 2020. Grazing is the leading suspect, but the mechanism is open.
 
 [docs/findings.md](docs/findings.md) gives the numbers, with their tests and caveats.
@@ -70,6 +70,7 @@ Notebook 5 extracts satellite data through Google Earth Engine. It needs the `sa
 | [09-site-weather](notebooks/09-site-weather.ipynb) | Takes the weather at each site's own grid cell from ERA5-Land and repeats the trends with it |
 | [10-site-years](notebooks/10-site-years.ipynb) | Brings in all six Landsat bands, puts the sensors on one scale band by band, and builds the table of site-years for the models |
 | [11-ladder](notebooks/11-ladder.ipynb) | Fits models of clipped biomass on a ladder of predictors and tests each on years left out of the fitting |
+| [12-forward-and-places](notebooks/12-forward-and-places.ipynb) | Tests the same models forward in time and at places not seen, and repeats the ladder without 2020 and with the years from 2007 |
 
 Once the data are in place, the first four notebooks run in about a minute. Notebook 5 takes about 15 minutes on its first run and seconds after that, because it saves what it extracts. Notebook 6 needs the Landsat tables, which a script extracts in about an hour and which can be stopped and started again:
 
@@ -77,7 +78,7 @@ Once the data are in place, the first four notebooks run in about a minute. Note
 .venv/bin/python scripts/extract_landsat.py
 ```
 
-Notebooks 10 and 11 need all six Landsat bands, from a second run of the script, and the `model` extra for the boosted trees:
+Notebooks 10 to 12 need all six Landsat bands, from a second run of the script, and the `model` extra for the boosted trees:
 
 ```bash
 .venv/bin/python scripts/extract_landsat.py --all-bands --first-year 1999 --last-year 2020
