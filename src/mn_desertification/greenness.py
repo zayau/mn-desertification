@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 from .paths import PROCESSED_DIR
-from .rules import SEASON_FIRST, SEASON_LAST, TO_LANDSAT7
+from .rules import FOOTPRINT_M, LANDSAT7_UNTIL, MIN_CLEAR, SEASON_FIRST, SEASON_LAST, TO_LANDSAT7
 
 # The side of a Landsat pixel, in metres.
 LANDSAT_PIXEL_M = 30
@@ -140,3 +140,43 @@ def fit_conversion(pairs: pd.DataFrame, onto: str = "first") -> dict:
         slope = kept.std() / converted.std()
         lines[band] = (float(kept.mean() - slope * converted.mean()), float(slope))
     return lines
+
+
+def read_conversions(path: Path | None = None) -> dict:
+    """The lines that put each sensor on the Landsat 7 scale, as ``with_indices`` takes them.
+
+    Reads the table that notebook 7 saves, ``landsat_conversions.csv``.
+    """
+    path = PROCESSED_DIR / "landsat_conversions.csv" if path is None else Path(path)
+    conversions = {}
+    for row in pd.read_csv(path).itertuples():
+        conversions.setdefault(row.sensor, {})[row.band] = (row.intercept, row.slope)
+    return conversions
+
+
+def counting(observations: pd.DataFrame, radius_m: float = FOOTPRINT_M, min_clear: float = MIN_CLEAR,
+             landsat7_until: int | None = LANDSAT7_UNTIL) -> pd.DataFrame:
+    """The observations that count under the rules.
+
+    ``observations`` needs ``clear_share`` (``add_clear_share``) and one row a
+    day (``clearest_per_day``). Kept are the rows of the circle of
+    ``radius_m``, with at least ``min_clear`` of it clear, and without Landsat
+    7 after ``landsat7_until`` (None keeps every year).
+    """
+    kept = (observations["radius_m"] == radius_m) & (observations["clear_share"] >= min_clear)
+    if landsat7_until is not None:
+        kept &= ~((observations["sensor"] == "landsat7") & (observations["time"].dt.year > landsat7_until))
+    return observations[kept]
+
+
+def seasonal_values(observations: pd.DataFrame, index: str = "ndvi", how: str = "median",
+                    first: tuple = SEASON_FIRST, last: tuple = SEASON_LAST) -> pd.DataFrame:
+    """Each site's value for each year: the median, or the highest, of its observations in the season.
+
+    The season runs from ``first`` to ``last``, both (month, day). Returns one
+    row per site and year with ``gid``, ``year``, the ``index`` column and
+    ``n_observations``. A site-year with no observation has no row.
+    """
+    by_site_year = in_season(observations, first, last).groupby(["gid", "year"])[index]
+    summary = by_site_year.median() if how == "median" else by_site_year.max()
+    return pd.DataFrame({index: summary, "n_observations": by_site_year.size()}).reset_index()

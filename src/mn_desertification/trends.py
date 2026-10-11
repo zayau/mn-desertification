@@ -98,3 +98,25 @@ def site_trends(remainders: pd.DataFrame, column: str = "remainder", min_years: 
     trends["pct_decade"] = percent_per_decade(trends["decade"])
     trends["sen_pct_decade"] = percent_per_decade(10 * trends["sen_slope"])
     return trends.reset_index()
+
+
+def residual_trends(table: pd.DataFrame, value_col: str, min_years: int) -> pd.DataFrame:
+    """The residual-trend method, site by site (Evans & Geerken 2004).
+
+    For every site with at least ``min_years`` years, log10 of ``value_col`` is
+    regressed on log10 of the site's own ``rain_growing``, and a trend is
+    fitted through what that leaves. Returns one row per site with
+    ``n_years``, ``rain_slope``, ``decade`` (the trend in log10 per decade)
+    and ``p_decline``, the one-sided p-value for a decline.
+    """
+    rows = []
+    usable = table.dropna(subset=[value_col, "rain_growing"])
+    for gid, site in usable.groupby("gid"):
+        if len(site) < min_years:
+            continue
+        rain, value = np.log10(site["rain_growing"]), np.log10(site[value_col])
+        rain_slope, intercept = np.polyfit(rain, value, 1)
+        fit = stats.linregress(site["year"], value - (intercept + rain_slope * rain))
+        rows.append({"gid": gid, "n_years": len(site), "rain_slope": rain_slope, "decade": 10 * fit.slope,
+                     "p_decline": fit.pvalue / 2 if fit.slope < 0 else 1 - fit.pvalue / 2})
+    return pd.DataFrame(rows)

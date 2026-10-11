@@ -66,7 +66,12 @@ CHECK_MIN_CLEAR = 0.9
 LONG_MIN_SITES = 0.7
 LONG_MIN_YEARS = 0.8
 
+# The last year of Landsat 7 that is used. Its difference from Landsat 8 is
+# steady until then and falls after, as its orbit drifts (notebook 7).
+LANDSAT7_UNTIL = 2020
+
 # Landsat 8 and 9 reflectance on the Landsat 7 scale: intercept and slope for
 # each band (Roy et al. 2016, Table 2, ordinary least squares on surface
-# reflectance).
+# reflectance). This is the published conversion, kept as a check; the main
+# version uses lines fitted to the sites (notebook 7).
 TO_LANDSAT7 = {"red": (0.0123, 0.9372), "nir": (0.0448, 0.8339)}

@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
 
-from mn_desertification.greenness import (add_clear_share, clearest_per_day, fit_conversion, in_season,
-                                          long_record_start, read_landsat, sensor_pairs, with_indices)
+from mn_desertification.greenness import (add_clear_share, clearest_per_day, counting, fit_conversion, in_season,
+                                          long_record_start, read_conversions, read_landsat, seasonal_values,
+                                          sensor_pairs, with_indices)
 from mn_desertification.rules import TO_LANDSAT7
 
 
@@ -111,3 +112,32 @@ def test_fit_conversion_recovers_a_known_line_and_with_indices_applies_it():
     table = pd.DataFrame([observation(sensor="landsat7", ndvi=0.5, msavi=0.3), observation(sensor="landsat8", ndvi=0.5, msavi=0.3)])
     converted = with_indices(table, conversions={"landsat8": {"red": (0.01, 1.0), "nir": (0.0, 0.9)}})
     assert np.allclose(converted["red"], [0.1, 0.11]) and np.allclose(converted["nir"], [0.3, 0.27])
+
+
+def test_counting_applies_the_circle_the_clear_share_and_the_last_year_of_landsat7():
+    table = pd.DataFrame([
+        observation(clear_share=0.9),
+        observation(clear_share=0.4),                                                        # too cloudy
+        observation(radius_m=50, clear_share=0.9),                                           # the other circle
+        observation(sensor="landsat7", time=pd.Timestamp("2020-07-11 03:40:00"), clear_share=0.9),
+        observation(sensor="landsat7", time=pd.Timestamp("2021-07-11 03:40:00"), clear_share=0.9),   # after the drift
+    ])
+    assert len(counting(table)) == 2
+    assert len(counting(table, landsat7_until=None)) == 3
+    assert len(counting(table, min_clear=0.3)) == 3
+    assert len(counting(table, radius_m=50)) == 1
+
+
+def test_seasonal_values_takes_the_median_or_the_highest_of_a_season():
+    days = {"2015-06-20": 0.9, "2015-07-05": 0.2, "2015-07-20": 0.3, "2015-08-25": 0.7, "2016-08-01": 0.5}
+    table = pd.DataFrame([observation(time=pd.Timestamp(day + " 04:00:00"), ndvi=value) for day, value in days.items()])
+    median = seasonal_values(table)
+    assert median["year"].to_list() == [2015, 2016]
+    assert np.allclose(median["ndvi"], [0.3, 0.5]) and median["n_observations"].to_list() == [3, 1]
+    highest = seasonal_values(table, how="max", first=(6, 1), last=(9, 30))
+    assert np.allclose(highest["ndvi"], [0.9, 0.5])
+
+
+def test_read_conversions_gives_the_lines_per_sensor_and_band(tmp_path):
+    (tmp_path / "lines.csv").write_text("sensor,band,intercept,slope\nlandsat8,red,0.005,1.02\nlandsat8,nir,0.0,0.98\n")
+    assert read_conversions(tmp_path / "lines.csv") == {"landsat8": {"red": (0.005, 1.02), "nir": (0.0, 0.98)}}

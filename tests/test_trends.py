@@ -50,3 +50,22 @@ def test_site_trends_keeps_sites_with_enough_years():
     assert np.allclose(trends["slope"], -0.01)
     assert np.allclose(trends["sen_slope"], -0.01)
     assert np.allclose(trends["decade"], -0.1)
+
+
+def test_residual_trends_find_a_decline_that_rain_does_not_explain():
+    from mn_desertification.trends import residual_trends
+
+    rng = np.random.default_rng(2)
+    rows = []
+    for gid, loss_per_year in [(1, 0.0), (2, -0.01)]:
+        for year in range(1990, 2020):
+            rain = rng.uniform(100, 300)
+            # Greenness follows rain with a slope of 0.5; site 2 also loses 0.01 log10 a year
+            value = 10 ** (0.5 * np.log10(rain) - 1.5 + loss_per_year * (year - 1990) + rng.normal(scale=0.005))
+            rows.append({"gid": gid, "year": year, "rain_growing": rain, "ndvi": value})
+    result = residual_trends(pd.DataFrame(rows), "ndvi", min_years=24).set_index("gid")
+    assert np.isclose(result.loc[1, "rain_slope"], 0.5, atol=0.05)
+    assert abs(result.loc[1, "decade"]) < 0.01 and result.loc[1, "p_decline"] > 0.05
+    # The decline blurs the rain slope of site 2 a little, as the method fits rain first
+    assert np.isclose(result.loc[2, "decade"], -0.1, atol=0.02) and result.loc[2, "p_decline"] < 0.001
+    assert residual_trends(pd.DataFrame(rows), "ndvi", min_years=31).empty
