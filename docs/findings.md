@@ -428,3 +428,77 @@ One line per band puts a sensor's reflectance on the Landsat 7 scale. It is the 
 **What it means**
 
 At these sites, a Landsat trend that runs through 2013 carries a rise of 0.02 to 0.03 NDVI that is not in the land, unless the sensors are first brought together. The published conversion does not do that here.
+
+### Does Landsat see the decline? 11 October 2026
+
+MODIS greenness in 500 m pixels did not decline over 2011–2020 while clipped biomass did. A 500 m pixel is a different piece of land from a clipping plot, so the same question was put to Landsat, within 100 m of each plot. A site's value for a year is the median NDVI of its observations from 1 July to 31 August, on the Landsat 7 scale, analysed like biomass: in logs, each site against its own average, with rain and summer temperature removed zone by zone. Notebook 8 has the numbers.
+
+**The decade 2011–2020**
+
+| Series | Trend, log10 per decade | 95% range | Percent per decade | Sites tested | Sites declining |
+|---|---|---|---|---|---|
+| Clipped biomass | −0.219 | −0.403 to −0.034 | −39.5 | 1,250 | 20.5% |
+| MODIS, 500 m | −0.007 | −0.057 to +0.043 | −1.6 | 1,488 | 5.0% |
+| Landsat, 30 m | −0.020 | −0.088 to +0.048 | −4.5 | 1,488 | 8.0% |
+
+- **Landsat does not show the decline.** Its range spans zero, and its trend is a tenth of the biomass trend.
+- **The two satellites tell the same story.** Their yearly means correlate at 0.96. Both follow biomass through good and bad years, Landsat at 0.79 and MODIS at 0.74, but they move far less. In 2020 biomass is at −0.200, Landsat at −0.033 and MODIS at −0.020.
+
+**The checks**
+
+| Version | Trend | 95% range | Sites declining |
+|---|---|---|---|
+| Main | −0.020 | −0.088 to +0.048 | 8.0% |
+| Published conversion | +0.026 | −0.031 to +0.083 | 4.3% |
+| No conversion | +0.027 | −0.031 to +0.085 | 3.4% |
+| Landsat 7 alone | −0.016 | −0.077 to +0.045 | 6.9% |
+| August alone | +0.023 | −0.058 to +0.105 | 4.1% |
+| Highest value of June to September | +0.018 | −0.031 to +0.066 | 3.8% |
+| 50 m circle | −0.020 | −0.089 to +0.048 | 8.1% |
+| 90% of the circle clear | −0.020 | −0.088 to +0.047 | 7.7% |
+| MSAVI | −0.007 | −0.075 to +0.061 | 7.2% |
+
+- **The conversion decides the sign.** Without the conversion fitted to the sites, the trend is positive. The difference of about 0.046 is the step from Landsat 7 to Landsat 8, which enters in 2013.
+- **Landsat 7 alone agrees with the main version.** It needs no conversion, so it confirms the fitted one.
+- **The season matters.** August alone and the highest value of June to September give trends about 0.04 above the main version.
+- **Every range includes zero,** and no version comes near the biomass trend.
+
+**Zone by zone**
+
+| Zone | Biomass | MODIS | Landsat | Landsat's 95% range |
+|---|---|---|---|---|
+| Desert | −0.412 | −0.036 | −0.058 | −0.131 to +0.015 |
+| Semi-desert steppe | −0.434 | −0.032 | −0.073 | −0.131 to −0.015 |
+| Steppe | −0.233 | −0.009 | −0.017 | −0.087 to +0.054 |
+| Forest steppe | +0.011 | +0.026 | +0.028 | −0.082 to +0.138 |
+| Mountain taiga | −0.024 | +0.003 | +0.010 | −0.058 to +0.078 |
+
+- **Landsat declines a little in the two driest zones,** about twice as much as MODIS and about a sixth as much as biomass.
+- **Only the semi-desert steppe has a range that excludes zero.** With five zones looked at, one such range is weak evidence on its own.
+
+**Could Landsat have shown a decline this large?**
+
+| | MODIS | Landsat |
+|---|---|---|
+| Greenness per unit of biomass, from year to year | 0.15 | 0.22 |
+| Greenness per unit of biomass, between sites | 0.63 | 0.72 |
+| Expected trend at the year-to-year rate | −0.032 | −0.047 |
+| Expected trend at the between-site rate | −0.137 | −0.157 |
+| Observed trend | −0.007 | −0.020 |
+| Its 95% range | −0.057 to +0.043 | −0.088 to +0.048 |
+
+- **Landsat follows biomass a little more closely than MODIS.**
+- **At the year-to-year rate the decline could not have shown,** because the expected trend lies inside Landsat's range. At the between-site rate it would have shown, and it did not.
+- This is what the greenness comparison above concluded for MODIS. Finer pixels do not change it.
+
+**The long record**
+
+- **Greenness rose slightly from 1989 to 2024,** by +0.015 log10 per decade (95% range +0.004 to +0.027), with 3.6% of the sites declining. MODIS rose by +0.033 over 2000–2024.
+- **2011–2020 is not unusual.** Its trend within the long record is −0.026, and 8 of the 27 ten-year windows have a lower one. The windows range from −0.112 (1994–2003) to +0.107 (2004–2013).
+- **Site by site the picture is the same.** With each site's greenness regressed on its own rain (Evans & Geerken 2004), the median site rises by +0.006 per decade, 5.5% of the sites decline, as chance gives, and 13.8% rise.
+
+**What it means**
+
+- **Scale is not the reason the satellites miss the decline.** Greenness within 100 m of the plots did not fall as clipped biomass did.
+- **Greenness and clipped biomass measure different things here.** A loss that moved greenness as differences between sites do is ruled out. A loss of standing biomass that leaves the green cover largely in place is not.
+- **The long record cannot speak for biomass.** By the rule set in advance, the satellite stands in for the field only in what it reproduces over the years with field data. Landsat reproduces the good and bad years and not the decline, so the slight greening since 1989 does not show that biomass held up before 2007.
