@@ -15,6 +15,10 @@ from .rules import FOOTPRINT_M, LANDSAT7_UNTIL, MIN_CLEAR, SEASON_FIRST, SEASON_
 # The side of a Landsat pixel, in metres.
 LANDSAT_PIXEL_M = 30
 
+# The six reflective bands, and the indices computed from them.
+BANDS = ["blue", "green", "red", "nir", "swir1", "swir2"]
+INDICES = ["ndvi", "msavi", "nir_swir1", "swir1_swir2"]
+
 
 def read_landsat(folder: Path | None = None) -> pd.DataFrame:
     """Every saved Landsat observation, from the files of ``scripts/extract_landsat.py``.
@@ -77,31 +81,37 @@ def long_record_start(sites_with_value: pd.Series, needed: float) -> int | None:
 
 
 def with_indices(observations: pd.DataFrame, to_landsat7: bool = True, conversions: dict | None = None) -> pd.DataFrame:
-    """The observations with NDVI and MSAVI computed from the mean reflectances of each circle.
+    """The observations with their indices computed from the mean reflectances of each circle.
 
     The files also hold the mean of the pixels' own indices, as ``ndvi`` and
     ``msavi``. Those are renamed ``ndvi_pixels`` and ``msavi_pixels``, and
     ``ndvi`` and ``msavi`` become the indices of the mean ``red`` and ``nir``,
-    as a sensor with the circle as its footprint would measure them.
+    as a sensor with the circle as its footprint would measure them. Where the
+    shortwave-infrared bands are present, two more indices are added, each a
+    normalised difference: ``nir_swir1`` and ``swir1_swir2``.
 
     The reflectance is first put on the Landsat 7 scale. ``conversions`` gives
-    the line for each sensor and band, as ``{sensor: {"red": (intercept,
-    slope), "nir": (intercept, slope)}}``; a sensor that is left out stays as
-    measured. With no ``conversions``, ``to_landsat7`` applies the published
-    lines to Landsat 8 and 9 (``rules.TO_LANDSAT7``) or, if False, leaves every
-    sensor as measured. The pixel means are never converted.
+    the line for each sensor and band, as ``{sensor: {band: (intercept,
+    slope)}}``; a sensor or band that is left out stays as measured. With no
+    ``conversions``, ``to_landsat7`` applies the published lines to the red
+    and near infrared of Landsat 8 and 9 (``rules.TO_LANDSAT7``) or, if
+    False, leaves everything as measured. The pixel means are never converted.
     """
     if conversions is None:
         conversions = {"landsat8": TO_LANDSAT7, "landsat9": TO_LANDSAT7} if to_landsat7 else {}
-    table = observations.rename(columns={"ndvi": "ndvi_pixels", "msavi": "msavi_pixels"})
-    red, nir = table["red"].copy(), table["nir"].copy()
+    table = observations.rename(columns={"ndvi": "ndvi_pixels", "msavi": "msavi_pixels"}).copy()
     for sensor, lines in conversions.items():
         rows = table["sensor"] == sensor
-        red[rows] = lines["red"][0] + lines["red"][1] * red[rows]
-        nir[rows] = lines["nir"][0] + lines["nir"][1] * nir[rows]
-    ndvi = (nir - red) / (nir + red)
-    msavi = (2 * nir + 1 - np.sqrt((2 * nir + 1) ** 2 - 8 * (nir - red))) / 2
-    return table.assign(red=red, nir=nir, ndvi=ndvi, msavi=msavi)
+        for band, (intercept, slope) in lines.items():
+            if band in table.columns:
+                table.loc[rows, band] = intercept + slope * table.loc[rows, band]
+    red, nir = table["red"], table["nir"]
+    table["ndvi"] = (nir - red) / (nir + red)
+    table["msavi"] = (2 * nir + 1 - np.sqrt((2 * nir + 1) ** 2 - 8 * (nir - red))) / 2
+    if "swir1" in table.columns:
+        table["nir_swir1"] = (nir - table["swir1"]) / (nir + table["swir1"])
+        table["swir1_swir2"] = (table["swir1"] - table["swir2"]) / (table["swir1"] + table["swir2"])
+    return table
 
 
 def sensor_pairs(observations: pd.DataFrame, first_sensor: str, second_sensor: str, days: int = 8) -> pd.DataFrame:
@@ -112,7 +122,7 @@ def sensor_pairs(observations: pd.DataFrame, first_sensor: str, second_sensor: s
     minus the first's. An observation with several partners appears in
     several pairs.
     """
-    wanted = ["gid", "radius_m", "time", "red", "nir", "ndvi", "msavi"]
+    wanted = ["gid", "radius_m", "time", *[name for name in BANDS + INDICES if name in observations.columns]]
     first = observations.loc[observations["sensor"] == first_sensor, wanted]
     second = observations.loc[observations["sensor"] == second_sensor, wanted]
     # Pairing within the year keeps the table small; the extraction holds June to September only
@@ -123,20 +133,22 @@ def sensor_pairs(observations: pd.DataFrame, first_sensor: str, second_sensor: s
     return pairs[pairs["days_apart"].abs() <= days].reset_index(drop=True)
 
 
-def fit_conversion(pairs: pd.DataFrame, onto: str = "first") -> dict:
+def fit_conversion(pairs: pd.DataFrame, onto: str = "first", bands=("red", "nir")) -> dict:
     """The line for each band that puts one sensor's reflectance on the other's scale, fitted to their pairs.
 
     ``pairs`` comes from ``sensor_pairs``. ``onto`` names the sensor whose
     scale is kept, ``"first"`` or ``"second"``. The line is the reduced major
     axis: its slope is the ratio of the two standard deviations, and it passes
     through the two means. Unlike least squares, it allows for error in both
-    sensors, so it does not flatten the scale. Returns ``{"red": (intercept,
-    slope), "nir": (intercept, slope)}``, as ``with_indices`` takes them.
+    sensors, so it does not flatten the scale. Returns ``{band: (intercept,
+    slope)}`` for each of ``bands``, as ``with_indices`` takes them. Pairs
+    missing a band are left out of that band's line.
     """
     source = "second" if onto == "first" else "first"
     lines = {}
-    for band in ["red", "nir"]:
-        kept, converted = pairs[f"{band}_{onto}"], pairs[f"{band}_{source}"]
+    for band in bands:
+        both = pairs[[f"{band}_{onto}", f"{band}_{source}"]].dropna()
+        kept, converted = both[f"{band}_{onto}"], both[f"{band}_{source}"]
         slope = kept.std() / converted.std()
         lines[band] = (float(kept.mean() - slope * converted.mean()), float(slope))
     return lines
@@ -180,3 +192,14 @@ def seasonal_values(observations: pd.DataFrame, index: str = "ndvi", how: str = 
     by_site_year = in_season(observations, first, last).groupby(["gid", "year"])[index]
     summary = by_site_year.median() if how == "median" else by_site_year.max()
     return pd.DataFrame({index: summary, "n_observations": by_site_year.size()}).reset_index()
+
+
+def season_medians(observations: pd.DataFrame, columns, first: tuple = SEASON_FIRST, last: tuple = SEASON_LAST) -> pd.DataFrame:
+    """Each site's median of several columns over a season of each year.
+
+    The season runs from ``first`` to ``last``, both (month, day). Returns one
+    row per site and year with ``gid``, ``year``, the ``columns`` and
+    ``n_observations``. A site-year with no observation has no row.
+    """
+    by_site_year = in_season(observations, first, last).groupby(["gid", "year"])
+    return by_site_year[list(columns)].median().assign(n_observations=by_site_year.size()).reset_index()
