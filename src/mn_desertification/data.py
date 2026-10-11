@@ -36,7 +36,8 @@ def read_soum_weather(tables_dir: Path | None = None) -> pd.DataFrame:
     Columns: ``asid`` (the soum), ``year``, ``zone`` (the soum's dominant
     ecological zone), ``rain_spring`` (March–May, mm), ``rain_summer``
     (June–August, mm), ``rain_growing`` (the two added) and ``temp_summer``
-    (mean June–August temperature, °C).
+    (mean June–August temperature, °C). The release's rain is all
+    precipitation, snow included (notebook 9).
 
     The release's year runs from 1 September to 31 August and is named after
     the year in which it ends, so the summer of year 2017 is June–August 2017,

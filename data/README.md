@@ -37,7 +37,7 @@ To set it up:
 
 ## Processed tables
 
-The notebooks write their tables to `processed/`. Run the notebooks in order, `01` to `08`, to rebuild them. The Landsat extraction takes about an hour and runs as a script, `.venv/bin/python scripts/extract_landsat.py`, which can be stopped and started again.
+The notebooks write their tables to `processed/`. Run the notebooks in order, `01` to `09`, to rebuild them. The Landsat extraction takes about an hour and runs as a script, `.venv/bin/python scripts/extract_landsat.py`, which can be stopped and started again.
 
 | File | Written by | Content |
 |---|---|---|
@@ -56,6 +56,7 @@ The notebooks write their tables to `processed/`. Run the notebooks in order, `0
 | `modis_jul_aug_median.csv` | 05 | The same for the median of July and August, the rule of the satellite check |
 | `landsat_conversions.csv` | 07 | The lines that put Landsat 5, 8 and 9 reflectance on the Landsat 7 scale, fitted to pairs of observations at the sites |
 | `landsat_site_years.csv` | 08 | One row per site and year, 1985–2024: the median Landsat NDVI of July and August on the Landsat 7 scale, and the number of observations behind it |
+| `era5_land_monthly.csv` | 09 | One row per site, year and month, March to August of 1989–2024: ERA5-Land's precipitation, snowfall and mean temperature at the grid cell that holds the plot |
 | `landsat/landsat5_1986.csv` and so on | `scripts/extract_landsat.py` | One file per Landsat sensor and year. One row per site, circle (100 m and 50 m) and overpass from June to September: the mean red and near-infrared reflectance of the clear pixels, the mean of their NDVI and MSAVI, and the number of clear pixels |
 
 ## NAMEM's full monitoring records

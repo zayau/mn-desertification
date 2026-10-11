@@ -123,6 +123,6 @@ Each stage saves its table to `data/processed/`, so later stages run without a c
 
 - Single clippings are noisy, so declines may be detectable only for groups of sites.
 - The main period is 10 years long and ends in 2020. Later years would need NAMEM's own records.
-- Rain on the soum's summer range is not rain at the site. Within each zone it explains only 5 to 12% of a site's changes from year to year, so much noise remains for the trend tests.
+- Rain on the soum's summer range is not rain at the site. Notebook 9 repeats the trends with the weather at each site's own grid cell, and they do not move. Within each zone it explains only 5 to 12% of a site's changes from year to year, so much noise remains for the trend tests.
 - What rain leaves unexplained shares a pattern across the country. Averaged over all sites, it is above zero in 2011–2014 and below in most later years, lowest in 2017 and 2020. Most site trends are therefore negative (median −47% per decade). A run of good years followed by bad ones, from heat or other weather the rain data miss, would look the same as a lasting decline over 10 years. Separating the two is the main open question for steps 1 and 2.
 - The causes of a decline, grazing or climate, are not part of the question. Claims about them stay modest.
