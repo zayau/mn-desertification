@@ -21,8 +21,8 @@ These results are for NAMEM's August biomass at its monitoring sites over 2011�
 - **Biomass fell across many sites.** Nationally the decline is about 40% per decade with temperature in the weather model. It is concentrated in the desert, semi-desert steppe and steppe zones. Shuffled orders of the same years almost never produce it.
 - **The decline rests on both ends of the decade.** At the start, values were high after the 2009–2010 dzud. At the end, the 2020 drought hit harder than the weather model predicts. Starting in 2007 reverses the decline. With temperature in the model, leaving out 2020 more than halves it.
 - **The method cannot detect a 20% decline** at a single site, soum or zone, so the study draws no map of degrading sites.
-- **Satellite greenness around the plots does not decline.** This holds when the greenness is extracted again from the MODIS archive.
-- **The Landsat sensors disagree at these sites.** Landsat 8 reads about a tenth greener than Landsat 7 on the same ground, and the published conversion removes less than half of that. A conversion fitted to the sites is used instead.
+- **Satellite greenness around the plots does not decline, at 500 m or at 30 m.** MODIS shows no trend. Landsat within 100 m of the plots shows about −5% per decade, with a range that spans zero, and a small decline in the two driest zones. Pixel size is not why the satellites miss the decline.
+- **The Landsat sensors disagree at these sites.** Landsat 8 reads about a tenth greener than Landsat 7 on the same ground, and the published conversion removes less than half of that. A conversion fitted to the sites is used instead. Without it the decade's Landsat trend comes out positive.
 - **Soums where herds grew more lost more biomass,** also without 2020. Grazing is the leading suspect, but the mechanism is open.
 
 [docs/findings.md](docs/findings.md) gives the numbers, with their tests and caveats.
@@ -64,6 +64,7 @@ Notebook 5 extracts satellite data through Google Earth Engine. It needs the `sa
 | [05-modis-replication](notebooks/05-modis-replication.ipynb) | Extracts MODIS greenness at the sites through Earth Engine, tests the extraction, compares it with the release's table and repeats the greenness trends |
 | [06-landsat-counts](notebooks/06-landsat-counts.ipynb) | Counts what the Landsat extraction holds at the sites: clear observations by sensor and year, and whether there are enough |
 | [07-sensor-checks](notebooks/07-sensor-checks.ipynb) | Pairs observations of two Landsat sensors at the same site, tests the published conversion between them, and fits one to these sites |
+| [08-landsat-trends](notebooks/08-landsat-trends.ipynb) | Fits the Landsat trends for 2011–2020 and for the record since 1989, with their checks, and compares them with biomass and MODIS |
 
 Once the data are in place, the first four notebooks run in about a minute. Notebook 5 takes about 15 minutes on its first run and seconds after that, because it saves what it extracts. Notebook 6 needs the Landsat tables, which a script extracts in about an hour and which can be stopped and started again:
 
