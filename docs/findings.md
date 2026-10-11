@@ -379,3 +379,52 @@ An observation counts when it falls between 1 July and 31 August and at least ha
 - **2012 is the thinnest year since 2000,** with 1,411 sites and a median of 2 observations per site. Landsat 7 was the only sensor that summer.
 - **The sensors change inside the decade.** Landsat 5 ends in 2011, Landsat 7 runs through, and Landsat 8 starts in 2013. Landsat 7 alone gives 1,468 sites at least 8 of the 10 years.
 - **The stricter checks cost little.** Requiring 90% of the circle to be clear leaves 54,179 of 54,450 site-years, and the 50 m circle leaves as many as the 100 m one.
+
+### Do the Landsat sensors agree? 11 October 2026
+
+The change from Landsat 7 to Landsat 8 falls in 2013, inside the decade 2011–2020. If the two do not measure the same greenness at the same place, a trend that pools them has a step that is not in the land. Observations of two sensors at the same site, at most eight days apart in July or August, were paired. Notebook 7 has the numbers. No trend was computed for them.
+
+**Landsat 7 and Landsat 8**
+
+The pairs number 56,046, at all 1,488 sites, from 2013 to 2023. The difference is Landsat 8 minus Landsat 7: each site's mean first, then the mean over sites.
+
+| Version | Red | Near infrared | NDVI | 95% range of NDVI |
+|---|---|---|---|---|
+| As measured | −0.0066 | +0.0055 | +0.0295 | +0.0289 to +0.0302 |
+| Published conversion (Roy et al. 2016) | −0.0032 | +0.0056 | +0.0182 | +0.0174 to +0.0191 |
+
+- **Landsat 8 reads greener than Landsat 7,** by 0.030 NDVI, about a tenth of a typical value at these sites.
+- **The published conversion removes about 40% of the difference.** It also bends the scale: it leaves +0.032 where NDVI is below 0.1 and −0.014 where it is above 0.5.
+- **The eight days between most pairs are not the cause.** Pairs one day apart give 0.027 as measured and 0.016 converted, and about as many pairs have Landsat 8 first as second.
+- **The difference is steady until 2020 and falls after.** As measured it is about 0.03 to 0.04 in every year from 2013 to 2020, then 0.025, 0.011 and −0.002 in 2021 to 2023. The Earth Engine catalog notes that Landsat 7 has drifted to an earlier time of day since 2017.
+
+**The rule and its change**
+
+The rule set before the pairs took the version with the smaller mean difference as the main one, which is the published conversion. Neither version brings the sensors together. On 11 October 2026, after the pairs and before any trend, the rule was changed ([design.md](design.md)):
+
+- The main version is a conversion fitted to these sites' own pairs.
+- The published conversion and no conversion are the checks.
+- Landsat 7 observations after 2020 are left out. Landsat 8 and 9 cover those years.
+
+**The fitted conversion**
+
+One line per band puts a sensor's reflectance on the Landsat 7 scale. It is the reduced major axis, which allows for error in both sensors. To test it, the lines were fitted on the sites with an even number and applied to the others, with the pairs of 2013–2020.
+
+| Version, on the sites not used for the fit | Landsat 8 minus Landsat 7, NDVI | 95% range |
+|---|---|---|
+| As measured | +0.0350 | +0.0340 to +0.0361 |
+| Published conversion | +0.0245 | +0.0233 to +0.0257 |
+| Fitted on the other sites | +0.0005 | −0.0005 to +0.0015 |
+
+- **The fitted conversion brings the sensors together** on sites it has not seen, and stays within 0.008 of zero along the whole scale of greenness.
+- **The lines for use are fitted on every site.** For Landsat 8 and 9, red becomes 0.0047 + 1.0262 times its value and near infrared 0.0004 + 0.9810 times. For Landsat 5, fitted to its pairs with Landsat 7 in 1999–2011, red becomes −0.0067 + 1.0187 times its value and near infrared −0.0064 + 1.0133 times.
+- **The other sensors are close to begin with.** As measured, Landsat 7 reads 0.007 NDVI greener than Landsat 5, and Landsat 9 agrees with Landsat 8 to 0.001.
+
+**Two smaller checks**
+
+- **How a circle's NDVI is computed does not matter.** The NDVI of the mean reflectances and the mean of the pixels' own NDVI differ by 0.0005 on average.
+- **The order of median and mean does not matter for MODIS.** Taking the mean within the circle first, as the rule now does, changes the MODIS values of 2002, 2012 and 2022 by 0.0006 to 0.0008 on average.
+
+**What it means**
+
+At these sites, a Landsat trend that runs through 2013 carries a rise of 0.02 to 0.03 NDVI that is not in the land, unless the sensors are first brought together. The published conversion does not do that here.
