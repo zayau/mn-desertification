@@ -39,3 +39,16 @@ def test_remainders_average_to_zero_at_each_site():
     site_means = fit.remainders.groupby("gid")["remainder"].mean()
     assert np.allclose(site_means, 0, atol=1e-12)
     assert "c_temp" not in fit.effects.columns
+
+
+def test_season_weather_builds_the_seasons_from_the_months():
+    from mn_desertification.weather import season_weather
+
+    rows = [{"gid": 1, "year": 2015, "month": month, "precipitation_mm": 10.0 * month,
+             "snowfall_mm": 5.0 if month == 3 else 0.0, "temperature_c": {6: 15.0, 7: 20.0, 8: 18.0}.get(month, 0.0)}
+            for month in range(3, 9)]
+    seasons = season_weather(pd.DataFrame(rows)).iloc[0]
+    assert seasons["rain_spring"] == 30 + 40 + 50 - 5 and seasons["rain_summer"] == 60 + 70 + 80
+    assert seasons["rain_growing"] == seasons["rain_spring"] + seasons["rain_summer"]
+    assert np.isclose(seasons["temp_summer"], (15 * 30 + 20 * 31 + 18 * 31) / 92)
+    assert season_weather(pd.DataFrame(rows), rain="all").iloc[0]["rain_spring"] == 120

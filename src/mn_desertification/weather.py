@@ -74,3 +74,27 @@ def fit_weather_model(table: pd.DataFrame, value_col: str, with_temp: bool = Tru
 def weather_remainders(table: pd.DataFrame, value_col: str, with_temp: bool = True) -> pd.DataFrame:
     """The rows of ``table`` with a ``remainder`` column from ``fit_weather_model``."""
     return fit_weather_model(table, value_col, with_temp).remainders
+
+
+def season_weather(monthly: pd.DataFrame, rain: str = "less snow") -> pd.DataFrame:
+    """Monthly weather at the sites as the seasons' variables of the soum table.
+
+    ``monthly`` comes from ``satellite.monthly_weather_at_sites`` and needs
+    March to August. ``rain`` is ``"all"`` for all precipitation or ``"less
+    snow"`` for precipitation less snowfall. Returns one row per site and
+    year: ``gid``, ``year``, ``rain_spring`` (March to May, mm),
+    ``rain_summer`` (June to August, mm), ``rain_growing`` (the two added)
+    and ``temp_summer`` (the mean of June to August, each month counted by
+    its days, °C).
+    """
+    table = monthly.copy()
+    table["rain"] = table["precipitation_mm"] - (table["snowfall_mm"] if rain == "less snow" else 0)
+    spring, summer = table[table["month"].between(3, 5)], table[table["month"].between(6, 8)]
+    days = summer["month"].map({6: 30, 7: 31, 8: 31})
+    seasons = pd.DataFrame({
+        "rain_spring": spring.groupby(["gid", "year"])["rain"].sum(),
+        "rain_summer": summer.groupby(["gid", "year"])["rain"].sum(),
+        "temp_summer": (summer["temperature_c"] * days).groupby([summer["gid"], summer["year"]]).sum() / days.groupby([summer["gid"], summer["year"]]).sum(),
+    })
+    seasons["rain_growing"] = seasons["rain_spring"] + seasons["rain_summer"]
+    return seasons.reset_index()[["gid", "year", "rain_spring", "rain_summer", "rain_growing", "temp_summer"]]

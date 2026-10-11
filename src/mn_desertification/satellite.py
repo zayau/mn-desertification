@@ -25,6 +25,9 @@ from .rules import CHECK_FOOTPRINT_M, FOOTPRINT_M, SEASON_FIRST, SEASON_LAST
 # straight above (NBAR), in 500 m pixels, one image a day since February 2000.
 MODIS_NBAR = "MODIS/061/MCD43A4"
 
+# ERA5-Land, a reconstruction of the weather on an 11 km grid, month by month.
+ERA5_LAND = "ECMWF/ERA5_LAND/MONTHLY_AGGR"
+
 # Landsat surface reflectance (Collection 2, Level 2, Tier 1) in 30 m pixels:
 # each sensor's collection, its red band and its near-infrared band.
 LANDSAT = {
@@ -386,6 +389,45 @@ def daily_values_at_sites(images: ee.ImageCollection, footprints: ee.FeatureColl
     long["date"] = pd.to_datetime(long["name"].str.slice(0, 10), format="%Y_%m_%d")
     long["band"] = long["name"].str.slice(11)
     return long.pivot(index=["gid", "date"], columns="band", values="value")[bands].reset_index().rename_axis(columns=None)
+
+
+def monthly_weather_at_sites(sites: pd.DataFrame, years: Iterable[int], months: Iterable[int] = range(3, 9),
+                             workers: int = 4) -> pd.DataFrame:
+    """ERA5-Land's weather in the grid cell that holds each site, month by month.
+
+    This sends the work to Earth Engine, one request per year, and waits for
+    the answers. Up to ``workers`` requests wait at the same time. Returns one
+    row per site, year and month: ``gid``, ``year``, ``month``,
+    ``precipitation_mm`` (rain and snow together), ``snowfall_mm`` (as water)
+    and ``temperature_c`` (the month's mean, 2 m above the ground).
+    """
+    months = list(months)
+    bands = {"total_precipitation_sum": "precipitation_mm", "snowfall_sum": "snowfall_mm", "temperature_2m": "temperature_c"}
+    # A plot is far smaller than a grid cell, so each site is a point and takes the value of its cell
+    points = ee.FeatureCollection([ee.Feature(ee.Geometry.Point([float(lon), float(lat)]), {"gid": int(gid)})
+                                   for gid, lon, lat in zip(sites["gid"], sites["lon"], sites["lat"])])
+
+    def one_year(year):
+        images = (ee.ImageCollection(ERA5_LAND).filter(ee.Filter.calendarRange(year, year, "year"))
+                  .filter(ee.Filter.calendarRange(months[0], months[-1], "month")).select(list(bands)))
+        # Stacked, each month's bands are named by its year and month, as in 201507_temperature_2m
+        reduced = images.toBands().reduceRegions(collection=points, reducer=ee.Reducer.first(),
+                                                 crs=images.first().projection())
+        features = reduced.select([".*"], None, False).getInfo()["features"]
+        long = pd.DataFrame([feature["properties"] for feature in features]).melt(id_vars="gid", var_name="name")
+        long["month"] = long["name"].str.slice(4, 6).astype(int)
+        long["band"] = long["name"].str.slice(7).map(bands)
+        table = long.pivot(index=["gid", "month"], columns="band", values="value").reset_index().rename_axis(columns=None)
+        table.insert(1, "year", year)
+        return table
+
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        table = pd.concat(list(pool.map(one_year, years)), ignore_index=True)
+    # Metres of water to millimetres, and kelvin to degrees Celsius
+    table["precipitation_mm"] *= 1000
+    table["snowfall_mm"] *= 1000
+    table["temperature_c"] -= 273.15
+    return table.astype({"gid": int})[["gid", "year", "month", "precipitation_mm", "snowfall_mm", "temperature_c"]]
 
 
 def pixels_near(image: ee.Image, lon: float, lat: float, grid: ee.Projection, distance_m: float) -> pd.DataFrame:
