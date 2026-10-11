@@ -37,7 +37,7 @@ To set it up:
 
 ## Processed tables
 
-The notebooks write their tables to `processed/`. Run the notebooks in order, `01` to `05`, to rebuild them. The Landsat extraction takes about an hour and runs as a script, `.venv/bin/python scripts/extract_landsat.py`, which can be stopped and started again.
+The notebooks write their tables to `processed/`. Run the notebooks in order, `01` to `07`, to rebuild them. The Landsat extraction takes about an hour and runs as a script, `.venv/bin/python scripts/extract_landsat.py`, which can be stopped and started again.
 
 | File | Written by | Content |
 |---|---|---|
@@ -54,6 +54,7 @@ The notebooks write their tables to `processed/`. Run the notebooks in order, `0
 | `modis_candidates.csv` | 05 | MODIS greenness at every site in three test years, in twelve versions of window, summary and quality |
 | `modis_august_mean.csv` | 05 | One row per site and year, 2000–2024: the August mean of MODIS NDVI and MSAVI within 100 m of the plot, and the number of days behind it |
 | `modis_jul_aug_median.csv` | 05 | The same for the median of July and August, the rule of the satellite check |
+| `landsat_conversions.csv` | 07 | The lines that put Landsat 5, 8 and 9 reflectance on the Landsat 7 scale, fitted to pairs of observations at the sites |
 | `landsat/landsat5_1986.csv` and so on | `scripts/extract_landsat.py` | One file per Landsat sensor and year. One row per site, circle (100 m and 50 m) and overpass from June to September: the mean red and near-infrared reflectance of the clear pixels, the mean of their NDVI and MSAVI, and the number of clear pixels |
 
 ## NAMEM's full monitoring records

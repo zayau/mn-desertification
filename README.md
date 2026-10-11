@@ -22,6 +22,7 @@ These results are for NAMEM's August biomass at its monitoring sites over 2011â€
 - **The decline rests on both ends of the decade.** At the start, values were high after the 2009â€“2010 dzud. At the end, the 2020 drought hit harder than the weather model predicts. Starting in 2007 reverses the decline. With temperature in the model, leaving out 2020 more than halves it.
 - **The method cannot detect a 20% decline** at a single site, soum or zone, so the study draws no map of degrading sites.
 - **Satellite greenness around the plots does not decline.** This holds when the greenness is extracted again from the MODIS archive.
+- **The Landsat sensors disagree at these sites.** Landsat 8 reads about a tenth greener than Landsat 7 on the same ground, and the published conversion removes less than half of that. A conversion fitted to the sites is used instead.
 - **Soums where herds grew more lost more biomass,** also without 2020. Grazing is the leading suspect, but the mechanism is open.
 
 [docs/findings.md](docs/findings.md) gives the numbers, with their tests and caveats.
@@ -62,6 +63,7 @@ Notebook 5 extracts satellite data through Google Earth Engine. It needs the `sa
 | [04-grazing](notebooks/04-grazing.ipynb) | Compares satellite greenness, herds and seasonal pastures with the decline |
 | [05-modis-replication](notebooks/05-modis-replication.ipynb) | Extracts MODIS greenness at the sites through Earth Engine, tests the extraction, compares it with the release's table and repeats the greenness trends |
 | [06-landsat-counts](notebooks/06-landsat-counts.ipynb) | Counts what the Landsat extraction holds at the sites: clear observations by sensor and year, and whether there are enough |
+| [07-sensor-checks](notebooks/07-sensor-checks.ipynb) | Pairs observations of two Landsat sensors at the same site, tests the published conversion between them, and fits one to these sites |
 
 Once the data are in place, the first four notebooks run in about a minute. Notebook 5 takes about 15 minutes on its first run and seconds after that, because it saves what it extracts. Notebook 6 needs the Landsat tables, which a script extracts in about an hour and which can be stopped and started again:
 
