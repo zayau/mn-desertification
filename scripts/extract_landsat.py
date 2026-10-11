@@ -14,7 +14,7 @@ Run from the repository root:
 
     .venv/bin/python scripts/extract_landsat.py
     .venv/bin/python scripts/extract_landsat.py --sensors landsat8 --years 2015 2016
-    .venv/bin/python scripts/extract_landsat.py --all-bands
+    .venv/bin/python scripts/extract_landsat.py --all-bands --first-year 1999 --last-year 2020
 
 With ``--all-bands``, the four other reflective bands are added, for the
 100 m circle only, and the files go to ``data/processed/landsat_bands/``.
@@ -47,6 +47,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--sensors", nargs="+", default=list(YEARS), choices=list(YEARS))
     parser.add_argument("--years", nargs="+", type=int, help="only these years")
+    parser.add_argument("--first-year", type=int, help="no year before this one")
+    parser.add_argument("--last-year", type=int, help="no year after this one")
     parser.add_argument("--workers", type=int, default=4, help="requests waiting on Earth Engine at once")
     parser.add_argument("--all-bands", action="store_true", help="add blue, green and the two shortwave-infrared bands")
     args = parser.parse_args()
@@ -58,7 +60,10 @@ def main() -> int:
     sites = pd.read_csv(PROCESSED_DIR / "sites.csv")
 
     jobs = [(sensor, year) for sensor in args.sensors for year in YEARS[sensor]
-            if (not args.years or year in args.years) and not (out_dir / f"{sensor}_{year}.csv").exists()]
+            if (not args.years or year in args.years)
+            and (args.first_year is None or year >= args.first_year)
+            and (args.last_year is None or year <= args.last_year)
+            and not (out_dir / f"{sensor}_{year}.csv").exists()]
     print(f"{len(jobs)} sensor-years to extract into {out_dir}", flush=True)
 
     failed = []
