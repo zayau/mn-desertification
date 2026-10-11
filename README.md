@@ -24,6 +24,7 @@ These results are for NAMEM's August biomass at its monitoring sites over 2011�
 - **Satellite greenness around the plots does not decline, at 500 m or at 30 m.** MODIS shows no trend. Landsat within 100 m of the plots shows about −5% per decade, with a range that spans zero, and a small decline in the two driest zones. Pixel size is not why the satellites miss the decline.
 - **The Landsat sensors disagree at these sites.** Landsat 8 reads about a tenth greener than Landsat 7 on the same ground, and the published conversion removes less than half of that. A conversion fitted to the sites is used instead. Without it the decade's Landsat trend comes out positive.
 - **The weather at each site's own place changes none of this.** So far every site had the weather of its soum.
+- **A model with every Landsat signal sees about a quarter of the decline.** Tested on years left out of the fitting, it still leaves most of the trend, whether it is a straight line or boosted trees. Greenness carries what the satellites know, and the other bands add nothing.
 - **Soums where herds grew more lost more biomass,** also without 2020. Grazing is the leading suspect, but the mechanism is open.
 
 [docs/findings.md](docs/findings.md) gives the numbers, with their tests and caveats.
@@ -67,11 +68,23 @@ Notebook 5 extracts satellite data through Google Earth Engine. It needs the `sa
 | [07-sensor-checks](notebooks/07-sensor-checks.ipynb) | Pairs observations of two Landsat sensors at the same site, tests the published conversion between them, and fits one to these sites |
 | [08-landsat-trends](notebooks/08-landsat-trends.ipynb) | Fits the Landsat trends for 2011–2020 and for the record since 1989, with their checks, and compares them with biomass and MODIS |
 | [09-site-weather](notebooks/09-site-weather.ipynb) | Takes the weather at each site's own grid cell from ERA5-Land and repeats the trends with it |
+| [10-site-years](notebooks/10-site-years.ipynb) | Brings in all six Landsat bands, puts the sensors on one scale band by band, and builds the table of site-years for the models |
+| [11-ladder](notebooks/11-ladder.ipynb) | Fits models of clipped biomass on a ladder of predictors and tests each on years left out of the fitting |
 
 Once the data are in place, the first four notebooks run in about a minute. Notebook 5 takes about 15 minutes on its first run and seconds after that, because it saves what it extracts. Notebook 6 needs the Landsat tables, which a script extracts in about an hour and which can be stopped and started again:
 
 ```bash
 .venv/bin/python scripts/extract_landsat.py
+```
+
+Notebooks 10 and 11 need all six Landsat bands, from a second run of the script, and the `model` extra for the boosted trees:
+
+```bash
+.venv/bin/python scripts/extract_landsat.py --all-bands --first-year 1999 --last-year 2020
+```
+
+```bash
+.venv/bin/pip install -e ".[notebooks,dev,satellite,model]"
 ```
 
 The unit tests need no data and no connection:
@@ -89,7 +102,7 @@ The unit tests need no data and no connection:
 | [docs/data-checks.md](docs/data-checks.md) | What the data hold and what the first checks showed |
 | [docs/findings.md](docs/findings.md) | What the analysis has shown so far |
 | [notebooks/](notebooks/) | The analysis, in numbered notebooks run in order |
-| [src/mn_desertification/](src/mn_desertification/) | The analysis package: data readers, the rules, the weather model, the trend, detection and grazing tests, the satellite extraction, and the handling of what it extracts |
+| [src/mn_desertification/](src/mn_desertification/) | The analysis package: data readers, the rules, the weather model, the trend, detection and grazing tests, the satellite extraction, the handling of what it extracts, and the biomass model |
 | [tests/](tests/) | Unit tests for the package, on small synthetic data |
 | [sources/](sources/) | The evidence base: the evidence table, the bibliography, the data inventory and the search log |
 | [scripts/](scripts/) | The literature search tool, a first look at the biomass data, and the Landsat extraction |

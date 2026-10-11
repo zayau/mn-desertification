@@ -14,6 +14,8 @@ The package holds the steps that the notebooks in ``notebooks/`` share:
 - ``satellite``: greenness at the sites from Google Earth Engine. It needs the
   optional ``satellite`` dependencies and is imported only where it is used.
 - ``greenness``: the extracted satellite observations, and which of them count.
+- ``model``: the biomass model, its ladder of predictors and its tests on
+  unseen years. The boosted trees need the optional ``model`` dependencies.
 """
 
 __version__ = "0.1.0"
