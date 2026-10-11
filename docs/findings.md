@@ -502,3 +502,31 @@ MODIS greenness in 500 m pixels did not decline over 2011–2020 while clipped b
 - **Scale is not the reason the satellites miss the decline.** Greenness within 100 m of the plots did not fall as clipped biomass did.
 - **Greenness and clipped biomass measure different things here.** A loss that moved greenness as differences between sites do is ruled out. A loss of standing biomass that leaves the green cover largely in place is not.
 - **The long record cannot speak for biomass.** By the rule set in advance, the satellite stands in for the field only in what it reproduces over the years with field data. Landsat reproduces the good and bad years and not the decline, so the slight greening since 1989 does not show that biomass held up before 2007.
+
+### The weather at the sites, 11 October 2026
+
+Every result above took out the weather of each site's soum, averaged over the soum's summer grazing range. As a check, the weather was taken at each site's own place: ERA5-Land's monthly values, on a grid of about 11 km, at the grid cell that holds each plot, built into the same seasons as the release's soum table. Notebook 9 has the numbers.
+
+- **The release's rain is all precipitation, snow included.** With snow, the sites' spring rain, averaged by soum, matches the soum table (correlation 0.966, 57.4 against 56.7 mm). With snowfall taken out it is half as large and matches poorly (0.685). So "rain" throughout these findings includes the snow of March to May.
+- **A site's weather differs from its soum's in level, not in its changes.** Over 2011–2020 a typical site is 8% away from its soum in growing-season rain, and 19% of the site-years are more than 20% away. But changes from year to year, each site against its own average, correlate at 0.96 for rain and 0.99 for summer temperature.
+- **A site's own weather explains its biomass no better.** The share of year-to-year change that the weather explains is the same to within 0.005 in every zone, between 7% and 15%.
+- **No trend moves.**
+
+| Series | Trend with the soum's weather | Trend with the site's weather |
+|---|---|---|
+| Biomass, 2011–2020 | −0.219 | −0.212 |
+| MODIS, 2011–2020 | −0.007 | −0.005 |
+| Landsat, 2011–2020 | −0.020 | −0.017 |
+| MODIS, 2000–2024 | +0.033 | +0.033 |
+| Landsat, 1989–2024 | +0.015 | +0.015 |
+
+- **A limit.** ERA5-Land's grid cells are about 11 km across and come from a weather model. A storm that wets one valley and not the next is beyond it. Station records would be the stricter test.
+
+### The satellite check in short
+
+- **The extraction was tested by hand** for MODIS and for Landsat, and the conclusions drawn earlier from the release's MODIS table hold with the values extracted here.
+- **Landsat's sensors disagree at these sites.** Landsat 8 reads about a tenth greener than Landsat 7, and the published conversion removes less than half of that. A conversion fitted to the sites brings them together. Without it the decade's Landsat trend comes out positive.
+- **Neither satellite shows the decline of clipped biomass,** at 500 m or within 100 m of the plots. Landsat's trend over 2011–2020 is −0.020 log10 per decade, with a range that spans zero, against −0.219 for biomass. A small decline shows in the two driest zones.
+- **A decline of that size could have shown** if greenness moved with biomass as it does between sites, and it did not. From year to year greenness moves too little with biomass for ten years to show it.
+- **2011–2020 is not unusual in the Landsat record since 1989,** but that record cannot speak for biomass before the field data begin.
+- **The weather taken at each site's own place changes none of this.**
