@@ -124,6 +124,65 @@ def forward(table: pd.DataFrame, predictors: list[str], kind: str, last_fit_year
     return estimate_unseen(table[early], table[~early], predictors, kind, target)
 
 
+def leave_group_out(table: pd.DataFrame, predictors: list[str], kind: str, group: str = "aimag",
+                    target: str = "log_bms") -> pd.DataFrame:
+    """Estimate the sites of each group with a model fitted to all the other groups.
+
+    Here nothing is taken as a departure. The target and the predictors enter
+    as they are, so the model has to place sites it has never seen, with no
+    average of theirs to start from. The line is fitted zone by zone with an
+    intercept, and takes a missing predictor as the zone's average in the rows
+    it is fitted to. The trees take the zone as a predictor and a missing
+    value as missing.
+
+    Returns the rows of ``table`` with ``observed`` (the target), ``estimate``
+    and ``remainder`` (the first minus the second).
+    """
+    pieces = []
+    for left_out in sorted(table[group].unique()):
+        fit_rows, new_rows = table[table[group] != left_out], table[table[group] == left_out]
+        if kind == "line":
+            estimate = pd.Series(np.nan, index=new_rows.index)
+            for zone in new_rows["zone"].unique():
+                fit_zone, new_zone = fit_rows[fit_rows["zone"] == zone], new_rows[new_rows["zone"] == zone]
+                if fit_zone.empty:
+                    continue
+                averages = fit_zone[predictors].mean()
+                design = np.column_stack([np.ones(len(fit_zone)), fit_zone[predictors].fillna(averages).to_numpy()])
+                slopes, *_ = np.linalg.lstsq(design, fit_zone[target].to_numpy(), rcond=None)
+                estimate[new_zone.index] = np.column_stack([np.ones(len(new_zone)), new_zone[predictors].fillna(averages).to_numpy()]) @ slopes
+        elif kind == "trees":
+            from sklearn.ensemble import HistGradientBoostingRegressor
+
+            def with_zone(rows):
+                return np.column_stack([rows[predictors].to_numpy(), pd.Categorical(rows["zone"], categories=ZONES).codes])
+
+            trees = HistGradientBoostingRegressor(random_state=0, categorical_features=[len(predictors)])
+            trees.fit(with_zone(fit_rows), fit_rows[target].to_numpy())
+            estimate = pd.Series(trees.predict(with_zone(new_rows)), index=new_rows.index)
+        else:
+            raise ValueError(f"kind must be 'line' or 'trees', not {kind!r}")
+        piece = new_rows[["gid", "year", "zone", group]].copy()
+        piece["observed"] = new_rows[target]
+        piece["estimate"] = estimate
+        pieces.append(piece)
+    result = pd.concat(pieces, ignore_index=True)
+    result["remainder"] = result["observed"] - result["estimate"]
+    return result
+
+
+def level_skill(result: pd.DataFrame, by_site: bool = False) -> float:
+    """The share of the differences in ``observed`` that the estimates explain, for ``leave_group_out``.
+
+    With ``by_site``, each site's values are averaged first, so the score is
+    about placing sites, not years.
+    """
+    if by_site:
+        result = result.groupby("gid")[["observed", "estimate"]].mean()
+    left = ((result["observed"] - result["estimate"]) ** 2).sum()
+    return float(1 - left / ((result["observed"] - result["observed"].mean()) ** 2).sum())
+
+
 def skill(result: pd.DataFrame) -> float:
     """The share of the sites' departures from their averages that the estimates explain.
 

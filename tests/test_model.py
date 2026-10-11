@@ -3,7 +3,8 @@ import pandas as pd
 import pytest
 
 from mn_desertification import trends
-from mn_desertification.model import RUNGS, estimate_unseen, forward, landsat_predictors, leave_year_out, predictors_up_to, skill
+from mn_desertification.model import (RUNGS, estimate_unseen, forward, landsat_predictors, leave_group_out, leave_year_out,
+                                      level_skill, predictors_up_to, skill)
 
 
 def declining_table(seed=1):
@@ -72,3 +73,21 @@ def test_landsat_predictors_cover_the_four_seasons():
     assert np.isclose(table.loc[2015, "ndvi_september"], 0.25) and np.isclose(table.loc[2015, "ndvi_before"], 0.20)
     assert np.isclose(table.loc[2015, "log_ndvi"], np.log10(0.40))
     assert np.isnan(table.loc[2014, "ndvi_june"])
+
+
+def test_leave_group_out_places_sites_it_has_never_seen():
+    rng = np.random.default_rng(4)
+    rows = []
+    for gid in range(80):
+        greenness = rng.uniform(0.1, 0.6)
+        for year in range(2011, 2016):
+            rows.append({"gid": gid, "year": year, "aimag": gid % 8, "zone": "Steppe zone" if gid % 2 else "Desert zone",
+                         "green": greenness + rng.normal(scale=0.02), "noise": rng.normal(),
+                         "log_bms": 2 * greenness + rng.normal(scale=0.05)})
+    table = pd.DataFrame(rows)
+    table.loc[table.index[::9], "green"] = np.nan   # a missing value takes the zone's average
+    placed = leave_group_out(table, ["green"], "line")
+    lost = leave_group_out(table, ["noise"], "line")
+    assert len(placed) == len(table) and placed["estimate"].notna().all()
+    assert level_skill(placed) > 0.75 and level_skill(placed, by_site=True) > level_skill(placed)
+    assert level_skill(lost) < 0.05
