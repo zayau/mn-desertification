@@ -1,6 +1,6 @@
 # Mongolia desertification
 
-A study of desertification in Mongolia's rangelands, measured as a loss of productivity beyond what the weather explains. It asks where the land lost productivity, whether satellites can see it, and whether it could have been predicted. The output will be a journal paper and a version for the web.
+A study of desertification in Mongolia's rangelands, measured as a loss of productivity beyond what the weather explains. It asks where the land lost productivity and whether satellites can see it. The output will be a journal paper and a version for the web.
 
 ## Phases
 

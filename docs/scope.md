@@ -6,7 +6,7 @@ Phase 1 output. Draft of 3 October 2026, open to revision until the research des
 
 Forecast land degradation in Mongolia from satellite and climate records, and measure how much skill such a forecast has.
 
-On 4 October 2026 this was narrowed to one question: where Mongolia's rangelands lost productivity between 2007 and 2020 beyond what rainfall explains, and whether it could have been predicted. See [design.md](design.md).
+On 4 October 2026 this was narrowed to one question: where Mongolia's rangelands lost productivity between 2007 and 2020 beyond what rainfall explains, and whether it could have been predicted. On 11 October 2026 the second half became whether satellites can see it. See [design.md](design.md).
 
 The study describes the change, explains it as far as the data allow, and then forecasts it. Evaluating and recommending solutions is outside this paper. The literature on actions is still collected, because the introduction and discussion of the paper need it and because it may become a second study.
 
