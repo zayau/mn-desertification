@@ -594,3 +594,49 @@ The herds rung passes the mark. A check added afterwards, and not set in advance
 **A limit**
 
 The test asks whether the signals carry each year's level. It cannot tell a decline that the satellites cannot see from one that is not in the land, such as a slow change in how the clipping was done.
+
+### Forward in time, places not seen, and the checks, 11 October 2026
+
+The same models went through the other tests set in advance. Notebook 12 has the numbers.
+
+**Forward in time**
+
+Each model was fitted to 2011–2015 and applied to 2016–2020, as a model built in 2015 would have been used.
+
+- **The later years were lower by 0.129 log10,** about a quarter less biomass than each site's average of 2011–2015.
+- **The weather alone expected about half of that,** −0.066.
+- **The satellites raise the skill but do not narrow the gap.** Skill goes from 11.6% with the weather to 24.5% with greenness. But −0.05 to −0.07 is left unexplained at every satellite rung, as with the weather alone.
+- **The models miss the depth of the two bad years.**
+
+| Year | Field, against the 2011–2015 average | Satellite models |
+|---|---|---|
+| 2016 | +0.038 | −0.03 to −0.06 |
+| 2017 | −0.352 | −0.19 to −0.20 |
+| 2018 | −0.052 | −0.03 to −0.04 |
+| 2019 | −0.067 | −0.02 to −0.04 |
+| 2020 | −0.208 | −0.03 to −0.05 |
+
+**Places not seen**
+
+One aimag was left out at a time, and the biomass and the predictors entered as they are, so that the model had to place sites it had never seen.
+
+- **A site's average biomass can be placed fairly well.** With every satellite signal the models explain 57% of the differences between the sites' ten-year averages, against 48% with the weather alone.
+- **A site-year is harder,** at 36%, and the typical estimate is off by a factor of nearly 1.8.
+- **Within an aimag the models tell little apart.** The best one scores above 0.3 in one aimag of 22 and below zero in five. Its overall score comes from telling regions apart.
+- **The decline shows here too.** What the best model leaves unexplained falls by −0.194 log10 per decade (95% range −0.306 to −0.082), although the model saw the same years in other aimags.
+
+**The checks**
+
+- **Without 2020** the reference trend halves to −0.116 and its range includes zero (−0.440 to +0.208), as the robustness checks above found. The satellites remove none of it.
+- **With the years from 2007,** every one of them left out in turn, the reference trend over 2011–2020 is −0.270 and the satellites remove 14% to 19% of it.
+- **Over 2007–2020 the herds remove about half of the trend,** 54% with the line and 44% with the trees, where they removed 94% and 83% over 2011–2020. With the dzud of 2010 in the record they are no longer a steady rise, which supports reading the herds rung as a clock.
+
+### The biomass model in short
+
+- **Landsat sees about a quarter of the decline of clipped biomass.** Given all six bands and the shape of the season, and tested on years left out of the fitting, a model still leaves a trend of about −0.19 log10 per decade, against −0.267 for the weather alone.
+- **Greenness carries all of what the satellites know.** The other bands and the season add nothing in the test of years, and a little in placing sites not seen.
+- **A straight line and boosted trees agree throughout.**
+- **What the satellites miss sits in the bad years.** In 2017 the models expect about half of the drop the field found, and in 2020 almost none of it.
+- **The herds account for the rest of the trend only as a steadily rising number would.**
+- **The satellites place a site's average biomass fairly well and a single year poorly,** and mostly by telling regions apart.
+- **What stays open.** These tests cannot tell a decline that the satellites cannot see from one that is not in the land, such as a change in how the clipping was done. NAMEM's own records can.
