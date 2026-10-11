@@ -530,3 +530,67 @@ Every result above took out the weather of each site's soum, averaged over the s
 - **A decline of that size could have shown** if greenness moved with biomass as it does between sites, and it did not. From year to year greenness moves too little with biomass for ten years to show it.
 - **2011–2020 is not unusual in the Landsat record since 1989,** but that record cannot speak for biomass before the field data begin.
 - **The weather taken at each site's own place changes none of this.**
+
+## The biomass model
+
+Steps 1 and 2 left the planned prediction without a target and without a signal, so step 3 was changed on 11 October 2026 ([design.md](design.md)). It asks whether the decline of clipped biomass is missing from greenness only, or from everything Landsat records. A model is fitted to clipped biomass and tested on years it has not seen. The rules were set before any model was fitted.
+
+### The six bands and the table of site-years, 11 October 2026
+
+- **All six reflective bands were extracted** at every site for every overpass from June to September, 1999 to 2020. The red and near-infrared values equal those of the earlier extraction, row for row.
+- **The sensors differ in every band.** As measured, Landsat 8 differs from Landsat 7 by −0.011 in blue to +0.004 in the near infrared. A line per band, fitted to pairs of observations as in the sensor checks, brings every band within 0.0012 on sites not used for the fit.
+- **The table for the models** has one row per site and year, with the clipped biomass, the weather at the site, the herd of the soum before the summer, and ten Landsat signals (the six bands and four indices), each summarised over July and August, June, September, and the July and August of the year before. It holds 13,367 site-years in 2011–2020, and at most 3.1% of a rung's values are missing.
+- **No single signal follows a site's biomass closely from year to year.** Within sites, NDVI correlates with biomass at 0.38, the second shortwave-infrared band at −0.40 and red at −0.39. Between sites the links are stronger: 0.75 for NDVI and about −0.7 for the visible bands.
+
+Notebook 10 has the numbers.
+
+### Every year left out in turn, 11 October 2026
+
+**The test**
+
+- **A ladder of predictors,** each rung added to the one before: the weather, greenness, all six bands, the shape of the season, and the herds. Every predictor is a site's departure from its own average.
+- **Two models at every rung:** a straight line fitted zone by zone, and boosted trees with their default settings.
+- **Each year of 2011–2020 is left out in turn.** The model is fitted to the other nine years and estimates the one left out. The yearly mean of what it leaves unexplained gets a trend.
+- **The pass mark.** The weather rung is the reference. A rung sees the decline when it removes at least half of the reference trend and its 95% range includes zero.
+
+**Results**
+
+Skill is the share of the sites' year-to-year change that a rung explains in the years left out. Notebook 11 has the numbers.
+
+| Rung | Model | Skill | Trend left, log10 per decade | 95% range | Share of the trend removed |
+|---|---|---|---|---|---|
+| 1. Weather | line | 7.9% | −0.267 | −0.516 to −0.018 | reference |
+| 1. Weather | trees | 5.7% | −0.266 | −0.471 to −0.061 | 0% |
+| 2. Greenness | line | 19.0% | −0.248 | −0.397 to −0.098 | 7% |
+| 2. Greenness | trees | 16.6% | −0.225 | −0.367 to −0.083 | 16% |
+| 3. All bands | line | 19.0% | −0.226 | −0.374 to −0.077 | 15% |
+| 3. All bands | trees | 17.8% | −0.206 | −0.330 to −0.082 | 23% |
+| 4. The season | line | 17.8% | −0.199 | −0.340 to −0.058 | 26% |
+| 4. The season | trees | 18.6% | −0.192 | −0.303 to −0.081 | 28% |
+| 5. Herds | line | 21.2% | −0.016 | −0.181 to +0.148 | 94% |
+| 5. Herds | trees | 23.2% | −0.046 | −0.162 to +0.069 | 83% |
+
+- **The reference trend is the decline of the field trends, measured more strictly.** It is −0.267 where the earlier figure was −0.219, because a year left out no longer pulls its sites' averages towards itself, and the weather's effect is fitted without it.
+- **No satellite rung sees the decline.** With every Landsat signal, a model that has not seen a year still leaves a trend of about −0.19 per decade, and its range excludes zero. The satellites account for about a quarter of the decline.
+- **Greenness carries what the satellites know.** It more than doubles the skill of the weather alone. The other four bands and the shape of the season add nothing to the skill.
+- **The two models agree,** so the result does not depend on the model's form. The trees find no curves or combinations that the line misses.
+- **In the three dry zones** the satellites remove between a fifth and a third of the decline.
+
+**The herds rung**
+
+The herds rung passes the mark. A check added afterwards, and not set in advance, asks why. The herds rose in every year of the decade, so a herd count is close to a clock. Each count was split into the country's herd of that year, the same for every site, and the soum's own departure from it.
+
+| Added to the satellite signals | Share of the trend removed, line | trees |
+|---|---|---|
+| Nothing | 26% | 28% |
+| The herds (rung 5) | 94% | 83% |
+| The calendar year in their place | 91% | 70% |
+| The country's herd of the year only | 91% | 75% |
+| The soum's own part only | 33% | 31% |
+
+- **The calendar year does almost as well as the herds.** The rung passes as any steadily rising number would. It shows that the decline runs steadily through the decade, not that the herds explain it.
+- **A soum's own herd adds little,** about five points. That is in line with the link across soums in the herd tests above, and far from explaining the decline.
+
+**A limit**
+
+The test asks whether the signals carry each year's level. It cannot tell a decline that the satellites cannot see from one that is not in the land, such as a slow change in how the clipping was done.
