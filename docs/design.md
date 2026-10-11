@@ -4,7 +4,9 @@ Phase 3 output. Draft of 4 October 2026. The question was agreed on that day. Th
 
 ## Question
 
-Where did Mongolia's rangelands lose productivity between 2007 and 2020 beyond what rainfall explains, and could it have been predicted?
+Where did Mongolia's rangelands lose productivity between 2007 and 2020 beyond what rainfall explains, and can satellites see it?
+
+The second half first read "and could it have been predicted?". It was changed on 11 October 2026, after steps 1 and 2: there is no map of declines to predict, and satellite greenness does not show the decline ([findings.md](findings.md)). Step 3 below says what replaced the prediction.
 
 ## What counts as desertification here
 
@@ -20,7 +22,7 @@ A dry year that lowers biomass and recovers with the rain is drought, not degrad
 | Rainfall | Spring and summer rain on each soum's summer grazing range, from the same release | A soum-level stand-in. ERA5-Land at each site's coordinates can replace it later |
 | Places | Soum boundaries and ecological zones from the same release | Used to link sites to rain and to model by zone |
 | Satellite (step 2) | Landsat and MODIS through Earth Engine | Extends the record to 1985–2025 if it agrees with the field |
-| Predictors (step 3) | Aridity, herd density from the livestock census, past trend, satellite signals | Livestock by bag from the statistics office's API |
+| Predictors (step 3) | Weather, Landsat reflectance in six bands, and herds from the livestock census | See "The biomass model (step 3)" |
 
 ## Steps
 
@@ -28,7 +30,7 @@ A dry year that lowers biomass and recovers with the rain is drought, not degrad
 
 **2. Satellite check.** Apply standard satellite methods for rain-adjusted trends at the same sites and see whether they find the declines the field data show.
 
-**3. Prediction.** Use information up to a cut-off year to predict which sites or areas decline afterwards. Score the predictions against simple baselines: aridity, herd density and the past trend.
+**3. The biomass model.** As first planned, this step used information up to a cut-off year to predict which sites or areas decline afterwards. Steps 1 and 2 left it without a target and without a signal. It now asks whether any satellite signal carries what the clippers measure: a model is fitted to clipped biomass with satellite signals and weather, and tested on years and places it has not seen.
 
 ## Rules set before the results
 
@@ -118,6 +120,59 @@ Each stage saves its table to `data/processed/`, so later stages run without a c
 4. The sensor checks.
 5. Trends and the comparison with biomass (questions 2 to 4).
 6. Weather at each site's coordinates from ERA5-Land, as a check on the soum averages used so far.
+
+## The biomass model (step 3)
+
+Planned on 11 October 2026, before any model was fitted.
+
+Step 2 tested two greenness indices, built from two of Landsat's bands and summarised over one season. Neither shows the decline of clipped biomass. Landsat has four more reflective bands, and the season has a shape as well as a level. This step asks whether the decline is missing from greenness only, or from everything these satellites record.
+
+### Questions
+
+1. **Seeing the decline.** When a year is left out of the fitting, does a model with satellite signals place it as low as the field did? If the satellites carry the decline, what the model leaves unexplained no longer falls over 2011–2020.
+2. **What adds what.** How much do the weather, greenness, the other bands, the shape of the season and the herds each add?
+3. **Estimating biomass.** How well can a site's clipped biomass in a given August be estimated in years, and at places, that the model has not seen?
+
+### Data
+
+| Role | Data | Note |
+|---|---|---|
+| Target | August biomass at the sites, as in step 1 | Floor of 0.1 c/ha, the three flagged values left out, in logs |
+| Landsat | The six reflective bands at each site, for every overpass from June to September | A new extraction. Its red and near-infrared values must equal those of step 2 |
+| Weather | ERA5-Land at each site (notebook 9) | |
+| Herds | The soum's herd before each summer, in sheep units (notebook 4) | Not a satellite signal, so it comes last |
+
+### Rules set before any model is fitted
+
+- **Target.** Log10 of biomass in 2011–2020, each site against its own average. A check uses 2007–2020.
+- **Sensors.** Each band is put on the Landsat 7 scale with a line fitted to the sites' own pairs, as in notebook 7. Landsat 7 is used up to 2020.
+- **The ladder.** Predictors are added in five rungs, each on top of the one before. Every predictor enters as the site's departure from its own average.
+  1. **Weather.** Growing-season rain, in logs, and summer temperature, as in step 1.
+  2. **Greenness.** Landsat NDVI, the median of 1 July to 31 August, in logs, as in step 2.
+  3. **All bands.** The July and August medians of the six bands, with MSAVI and two indices of the shortwave-infrared bands: near infrared against the first, and the first against the second, each as a normalised difference.
+  4. **The season.** The same bands and indices in June and in September, and those of the July and August before.
+  5. **Herds.** The soum's herd before the summer, in logs.
+- **Models.** Two at every rung, with nothing tuned on the years being tested:
+  - a straight-line model fitted zone by zone, as in step 1;
+  - boosted trees (scikit-learn's histogram gradient boosting, with its default settings and a fixed seed), with the zone as a predictor. Where a site has no clear observation in a month, the trees take the value as missing and the straight-line model takes the site's average.
+- **Leaving a year out.** Each year of 2011–2020 is left out in turn. The model is fitted to the other nine, with each site's averages taken over those nine, and then estimates the year left out. What it leaves unexplained there is the year's remainder.
+- **Seeing the decline.** The yearly mean of the remainders gets a trend with its 95% range, as in step 1. The weather rung is the reference. A rung counts as seeing the decline when it removes at least half of the reference trend and its range includes zero.
+- **Skill.** The share of the sites' year-to-year change that a rung explains in the years left out.
+- **Forward in time.** Each model is also fitted to 2011–2015 and applied to 2016–2020. The result is the mean of what it leaves unexplained in those five years.
+- **Unseen places.** One aimag is left out at a time. For this test the predictors enter as they are, not as departures, so that the model has to place a site it has never seen.
+- **Checks.** The ladder without 2020, whose drought carries about half of the decline, and with 2007–2020.
+
+### Order of work
+
+1. Landsat's six bands at the sites, and a line per band between the sensors.
+2. One table of site-years with the target and every predictor.
+3. Leaving a year out, rung by rung (questions 1 and 2).
+4. Forward in time and unseen places (question 3).
+5. The checks.
+
+### Left for later
+
+MODIS's daily record of seven bands could give the season a finer shape. Forecasting the next August from what is known in June is a different question, about warning and not about decline, and can use the same table.
 
 ## Known risks
 
