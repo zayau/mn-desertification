@@ -14,6 +14,10 @@ Run from the repository root:
 
     .venv/bin/python scripts/extract_landsat.py
     .venv/bin/python scripts/extract_landsat.py --sensors landsat8 --years 2015 2016
+    .venv/bin/python scripts/extract_landsat.py --all-bands
+
+With ``--all-bands``, the four other reflective bands are added, for the
+100 m circle only, and the files go to ``data/processed/landsat_bands/``.
 
 It needs the ``satellite`` dependencies and the Earth Engine setup described
 in the README.
@@ -27,7 +31,7 @@ import pandas as pd
 
 from mn_desertification import satellite as sat
 from mn_desertification.paths import PROCESSED_DIR
-from mn_desertification.rules import EXTRACT_FIRST, EXTRACT_LAST
+from mn_desertification.rules import CHECK_FOOTPRINT_M, EXTRACT_FIRST, EXTRACT_LAST, FOOTPRINT_M
 
 # The summers each sensor was taking scenes. Landsat 5 ended in 2011 and
 # Landsat 7 in early 2024. The weather record ends in 2024.
@@ -44,9 +48,11 @@ def main() -> int:
     parser.add_argument("--sensors", nargs="+", default=list(YEARS), choices=list(YEARS))
     parser.add_argument("--years", nargs="+", type=int, help="only these years")
     parser.add_argument("--workers", type=int, default=4, help="requests waiting on Earth Engine at once")
+    parser.add_argument("--all-bands", action="store_true", help="add blue, green and the two shortwave-infrared bands")
     args = parser.parse_args()
 
-    out_dir = PROCESSED_DIR / "landsat"
+    out_dir = PROCESSED_DIR / ("landsat_bands" if args.all_bands else "landsat")
+    radii = (FOOTPRINT_M,) if args.all_bands else (FOOTPRINT_M, CHECK_FOOTPRINT_M)
     out_dir.mkdir(parents=True, exist_ok=True)
     sat.connect()
     sites = pd.read_csv(PROCESSED_DIR / "sites.csv")
@@ -60,7 +66,7 @@ def main() -> int:
         began = time.time()
         start, end = sat.season_dates(year, EXTRACT_FIRST, EXTRACT_LAST)
         try:
-            table = sat.landsat_observations(sensor, sites, start, end, workers=args.workers)
+            table = sat.landsat_observations(sensor, sites, start, end, radii, args.workers, args.all_bands)
         except Exception as error:  # a failed request; the next run tries this sensor-year again
             failed.append((sensor, year))
             print(f"[{number}/{len(jobs)}] {sensor} {year}: FAILED, {str(error).splitlines()[0][:150]}", flush=True)

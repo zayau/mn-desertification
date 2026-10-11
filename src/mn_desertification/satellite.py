@@ -37,6 +37,15 @@ LANDSAT = {
     "landsat9": ("LANDSAT/LC09/C02/T1_L2", "SR_B4", "SR_B5"),
 }
 
+# The other four reflective bands of each sensor: blue, green and two in the
+# shortwave infrared.
+LANDSAT_OTHER_BANDS = {
+    "landsat5": {"blue": "SR_B1", "green": "SR_B2", "swir1": "SR_B5", "swir2": "SR_B7"},
+    "landsat7": {"blue": "SR_B1", "green": "SR_B2", "swir1": "SR_B5", "swir2": "SR_B7"},
+    "landsat8": {"blue": "SR_B2", "green": "SR_B3", "swir1": "SR_B6", "swir2": "SR_B7"},
+    "landsat9": {"blue": "SR_B2", "green": "SR_B3", "swir1": "SR_B6", "swir2": "SR_B7"},
+}
+
 # The Earth's mean radius, for distances of a few hundred metres.
 EARTH_RADIUS_M = 6_371_000
 
@@ -136,18 +145,33 @@ def modis_nbar(start: str, end: str, full_inversions_only: bool = False) -> ee.I
     return ee.ImageCollection(MODIS_NBAR).filterDate(start, end).map(prepare)
 
 
-def _clear_landsat(image: ee.Image, red_band: str, nir_band: str) -> ee.Image:
-    """A Landsat scene as ``red``, ``nir``, the index bands and ``clear``, with values at clear pixels only."""
-    # Stored as whole numbers; the scale and offset bring reflectance back to 0-1
-    bands = image.select([red_band, nir_band], ["red", "nir"]).multiply(0.0000275).add(-0.2)
+def _clear_landsat(image: ee.Image, red_band: str, nir_band: str, other_bands: dict | None = None) -> ee.Image:
+    """A Landsat scene as ``red``, ``nir``, the index bands and ``clear``, with values at clear pixels only.
+
+    ``other_bands`` adds more bands, as ``{name: band}``. Whether a pixel is
+    clear is still decided by the quality band, ``red`` and ``nir`` alone, so
+    that adding bands leaves the others unchanged. An added band has no value
+    at a clear pixel where that band is saturated or outside 0 to 1.
+    """
+    def reflectance(names, new_names):
+        # Stored as whole numbers; the scale and offset bring reflectance back to 0-1
+        return image.select(names, new_names).multiply(0.0000275).add(-0.2)
+
+    def usable(values, names):
+        # In the saturation band, bit n - 1 is set where band n is saturated
+        saturated_bits = sum(1 << (int(name[-1]) - 1) for name in names)
+        unsaturated = image.select("QA_RADSAT").bitwiseAnd(saturated_bits).eq(0)
+        return unsaturated.And(values.gt(0).And(values.lte(1)).reduce(ee.Reducer.min()))
+
+    bands = reflectance([red_band, nir_band], ["red", "nir"])
     # Bits 0 to 5 of the quality band: fill, dilated cloud, cirrus, cloud, cloud shadow, snow
     unflagged = image.select("QA_PIXEL").bitwiseAnd(0b111111).eq(0)
-    # In the saturation band, bit n - 1 is set where band n is saturated
-    saturated_bits = sum(1 << (int(band[-1]) - 1) for band in (red_band, nir_band))
-    unsaturated = image.select("QA_RADSAT").bitwiseAnd(saturated_bits).eq(0)
-    in_range = bands.gt(0).And(bands.lte(1)).reduce(ee.Reducer.min())
-    clear = unflagged.And(unsaturated).And(in_range).selfMask().rename("clear")
-    return add_indices(bands.updateMask(clear)).addBands(clear)
+    clear = unflagged.And(usable(bands, [red_band, nir_band])).selfMask().rename("clear")
+    prepared = add_indices(bands.updateMask(clear)).addBands(clear)
+    for name, band in (other_bands or {}).items():
+        values = reflectance([band], [name])
+        prepared = prepared.addBands(values.updateMask(clear).updateMask(usable(values, [band])))
+    return prepared
 
 
 def landsat(sensor: str, start: str, end: str, region: ee.Geometry) -> ee.ImageCollection:
@@ -212,7 +236,8 @@ def sites_under_overpasses(scenes: pd.DataFrame, sites: pd.DataFrame) -> list[tu
 
 
 def landsat_observations(sensor: str, sites: pd.DataFrame, start: str, end: str,
-                         radii: Iterable[float] = (FOOTPRINT_M, CHECK_FOOTPRINT_M), workers: int = 4) -> pd.DataFrame:
+                         radii: Iterable[float] = (FOOTPRINT_M, CHECK_FOOTPRINT_M), workers: int = 4,
+                         all_bands: bool = False) -> pd.DataFrame:
     """What every overpass of one Landsat sensor shows at every site it covers.
 
     This sends the work to Earth Engine and waits for the answer. The scenes
@@ -228,11 +253,17 @@ def landsat_observations(sensor: str, sites: pd.DataFrame, start: str, end: str,
     clear pixels in the circle, with parts of pixels counted as parts. A
     circle with no clear pixel in an overpass has no row. Up to ``workers``
     requests wait on Earth Engine at the same time.
+
+    With ``all_bands``, the mean ``blue``, ``green``, ``swir1`` and ``swir2``
+    of the clear pixels are added, the last two being the shortwave-infrared
+    bands. The other columns do not change.
     """
     radii = list(radii)
     collection, red_band, nir_band = LANDSAT[sensor]
+    other_bands = LANDSAT_OTHER_BANDS[sensor] if all_bands else {}
     wanted = {"gid": "gid", "radius_m": "radius_m", "overpass": "overpass", "time": "time", "red_mean": "red",
-              "nir_mean": "nir", "ndvi_mean": "ndvi", "msavi_mean": "msavi", "clear_sum": "clear_pixels"}
+              "nir_mean": "nir", "ndvi_mean": "ndvi", "msavi_mean": "msavi",
+              **{f"{name}_mean": name for name in other_bands}, "clear_sum": "clear_pixels"}
     scenes = landsat_scenes(sensor, start, end, sites_box(sites))
 
     plan = sites_under_overpasses(scenes, sites)
@@ -251,7 +282,7 @@ def landsat_observations(sensor: str, sites: pd.DataFrame, start: str, end: str,
 
     def rows_of(overpass, scene_names, when, covered):
         images = [ee.Image(f"{collection}/{name}") for name in scene_names]
-        joined = ee.ImageCollection([_clear_landsat(image, red_band, nir_band) for image in images]).mosaic()
+        joined = ee.ImageCollection([_clear_landsat(image, red_band, nir_band, other_bands) for image in images]).mosaic()
         # A joined image forgets its pixel grid, so it is given the grid of its scenes
         joined = joined.setDefaultProjection(images[0].select(red_band).projection())
         rows = joined.reduceRegions(collection=site_circles(covered, radii), reducer=reducer, tileScale=4)
